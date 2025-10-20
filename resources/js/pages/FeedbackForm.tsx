@@ -143,42 +143,6 @@ export default function FeedbackForm({
                     </button>
                 </form>
             </div>
-
-            <div className="mx-auto mt-10 max-w-4xl">
-                <h2 className="mb-4 text-xl font-semibold">
-                    {translations.all_feedbacks}
-                </h2>
-
-                {feedbacks.data.length > 0 ? (
-                    <div className="space-y-4">
-                        {feedbacks.data.map((f) => (
-                            f.comment && (
-                                <div key={f.id} className="rounded-lg border p-4 shadow-sm bg-white">
-                                    <p className="text-gray-800">{f.comment}</p>
-                                    <span className="text-sm text-gray-500">
-                                        {new Date(f.created_at).toLocaleDateString('uz-UZ')}
-                                    </span>
-                                </div>
-                            )
-                        ))}
-                    </div>
-                ) : (
-                    <p className="text-gray-500 italic">{translations.no_feedbacks}</p>
-                )}
-
-                <div className="mt-6 flex justify-center space-x-2">
-                    {feedbacks.links.map((link, index) => (
-                        <Link
-                            key={index}
-                            href={link.url || '#'}
-                            className={`px-3 py-1 rounded ${
-                                link.active ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
-                            }`}
-                            dangerouslySetInnerHTML={{ __html: link.label }}
-                        />
-                    ))}
-                </div>
-            </div>
         </Layout>
     );
 }
