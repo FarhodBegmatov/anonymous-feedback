@@ -23,7 +23,7 @@ class TwoFactorAuthenticationController extends Controller implements HasMiddlew
     }
 
     /**
-     * Show the user's two-factor authentication settings page.
+     * FacultyForm the user's two-factor authentication settings page.
      */
     public function show(TwoFactorAuthenticationRequest $request): Response
     {

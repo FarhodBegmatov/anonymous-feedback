@@ -37,7 +37,7 @@ class FacultyController extends Controller
 
 //    public function show(Faculty $faculty)
 //    {
-//        return Inertia::render('Admin/Faculties/Show', [
+//        return Inertia::render('Admin/Faculties/FacultyForm', [
 //            'faculty' => $faculty,
 //        ]);
 //    }

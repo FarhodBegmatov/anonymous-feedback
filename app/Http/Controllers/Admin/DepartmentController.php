@@ -36,20 +36,26 @@ class DepartmentController extends Controller
             'name' => $validated['name'],
         ]);
 
-        // Inertia orqali darhol index sahifani yangilash
-        $departments = Department::with('faculty')->get();
-        return Inertia::render('Admin/Departments/Index', compact('departments'));
+        // Flash xabar bilan qaytarish
+        return redirect()
+            ->route('admin.departments.index')
+            ->with('success', 'Bo‘lim muvaffaqiyatli qo‘shildi!');
     }
 
-    public function show(Department $department)
-    {
-        return Inertia::render('Admin/Departments/Show', compact('department'));
-    }
+
+//    public function show(Department $department)
+//    {
+//        return Inertia::render('Admin/Departments/FacultyForm', compact('department'));
+//    }
 
     public function edit(Department $department)
     {
         $faculties = Faculty::all();
-        return Inertia::render('Admin/Departments/Edit', compact('department', 'faculties'));
+
+        return Inertia::render('Admin/Departments/Edit', [
+            'department' => $department->toArray(),
+            'faculties' => $faculties,
+        ]);
     }
 
     public function update(Request $request, Department $department)
@@ -61,11 +67,15 @@ class DepartmentController extends Controller
             'name.ru' => 'required|string|max:255',
         ]);
 
-        $department->update($validated);
+        $department->update([
+            'faculty_id' => $validated['faculty_id'],
+            'name' => $validated['name'],
+        ]);
 
-        // Inertia orqali darhol index sahifani yangilash
-        $departments = Department::with('faculty')->get();
-        return Inertia::render('Admin/Departments/Index', compact('departments'));
+        // ✅ Flash message bilan qayta yo‘naltirish
+        return redirect()
+            ->route('admin.departments.index')
+            ->with('success', 'Department updated successfully!');
     }
 
     public function destroy(Department $department)

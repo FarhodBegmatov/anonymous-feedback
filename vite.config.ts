@@ -15,6 +15,7 @@ export default defineConfig({
         tailwindcss(),
         wayfinder({
             formVariants: true,
+            php: '"C:\\MAMP\\bin\\php\\php8.3.1\\php.exe"',
         }),
     ],
     esbuild: {

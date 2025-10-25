@@ -10,23 +10,26 @@ class AuthenticatedSessionController extends Controller
 {
     public function store(Request $request)
     {
-        $credentials = $request->validate([
-            'name' => ['required', 'string'],
-            'password' => ['required', 'string'],
-        ]);
+//        $credentials = $request->validate([
+//            'email' => ['required', 'string', 'email'],
+//            'password' => ['required', 'string'],
+//        ]);
 
-        if (Auth::attempt($credentials)) {
+        if (Auth::attempt([
+            'name' => $request->name,
+            'password' => $request->password,
+        ])) {
             $request->session()->regenerate();
 
             $user = Auth::user();
 
             // 👇 Userning roliga qarab yo‘naltirish
-            if (auth()->user()->isAdmin()) {
-                return redirect()->route('faculties.index');
+            if ($user->isAdmin()) {
+                return redirect()->route('admin.faculties.index');
             }
-//            if (auth()->user()->isManager()) {
-//                return redirect()->route('manager.dashboard');
-//            }
+            if ($user->isManager()) {
+                return redirect()->route('manager.dashboard');
+            }
         }
         return back()->withErrors([
             'name' => 'Login maʼlumotlari noto‘g‘ri.',

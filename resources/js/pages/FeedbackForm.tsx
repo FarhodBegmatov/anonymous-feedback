@@ -1,5 +1,5 @@
 import Layout from '@/components/Layout';
-import { useForm, usePage, Link } from '@inertiajs/react';
+import { useForm, usePage} from '@inertiajs/react';
 import { FormEvent, useEffect, useState } from 'react';
 
 interface Department {
@@ -37,7 +37,6 @@ interface FlashMessages {
 
 export default function FeedbackForm({
                                          department,
-                                         feedbacks,
                                          locale,
                                          translations,
                                      }: Props) {
@@ -51,6 +50,7 @@ export default function FeedbackForm({
             const timer = setTimeout(() => setShowFlash(false), 3000);
             return () => clearTimeout(timer);
         }
+        return undefined;
     }, [flash]);
 
     const { data, setData, post, processing, errors, reset } = useForm({

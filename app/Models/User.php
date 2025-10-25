@@ -22,7 +22,9 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role'
+        'role',
+        'manageable_type',
+        'manageable_id',
     ];
 
     /**
@@ -50,8 +52,23 @@ class User extends Authenticatable
 
 //    public function manager()
 //    {
-//        return $this->hasOne(Manager::class, 'email', 'email');
+//        return $this->hasOne(Managers::class, 'email', 'email');
 //    }
+
+    public function manageable()
+    {
+        return $this->morphTo();
+    }
+
+    public function isFacultyManager(): bool
+    {
+        return $this->manageable_type === \App\Models\Faculty::class;
+    }
+
+    public function isDepartmentManager(): bool
+    {
+        return $this->manageable_type === \App\Models\Department::class;
+    }
 
     // Rolni qulay tekshirish uchun
     public function isAdmin()

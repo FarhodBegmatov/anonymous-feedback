@@ -1,28 +1,49 @@
-import PasswordController from '@/actions/App/Http/Controllers/Settings/PasswordController';
-import InputError from '@/components/input-error';
+import { useRef } from 'react';
+import { route } from 'ziggy-js';
+import { Transition } from '@headlessui/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
+
+// Import components
 import AppLayout from '@/layouts/app-layout';
 import SettingsLayout from '@/layouts/settings/layout';
-import { type BreadcrumbItem } from '@/types';
-import { Transition } from '@headlessui/react';
-import { Form, Head } from '@inertiajs/react';
-import { useRef } from 'react';
-
 import HeadingSmall from '@/components/heading-small';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { edit } from '@/routes/password';
+import InputError from '@/components/input-error';
+
+// Types
+interface BreadcrumbItem {
+    title: string;
+    href: string;
+}
+
+type PageProps = {
+    csrf: string;
+    [key: string]: unknown;
+}
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Password settings',
-        href: edit().url,
+        href: route('password.update'),
     },
 ];
 
 export default function Password() {
     const passwordInput = useRef<HTMLInputElement>(null);
     const currentPasswordInput = useRef<HTMLInputElement>(null);
+    
+    const { csrf } = usePage<PageProps>().props;
+    const { data, setData, errors, put, reset, processing, recentlySuccessful } = useForm<{
+        current_password: string;
+        password: string;
+        password_confirmation: string;
+    }>({
+        current_password: '',
+        password: '',
+        password_confirmation: '',
+    });
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -35,31 +56,27 @@ export default function Password() {
                         description="Ensure your account is using a long, random password to stay secure"
                     />
 
-                    <Form
-                        {...PasswordController.update.form()}
-                        options={{
-                            preserveScroll: true,
-                        }}
-                        resetOnError={[
-                            'password',
-                            'password_confirmation',
-                            'current_password',
-                        ]}
-                        resetOnSuccess
-                        onError={(errors) => {
-                            if (errors.password) {
-                                passwordInput.current?.focus();
-                            }
-
-                            if (errors.current_password) {
-                                currentPasswordInput.current?.focus();
-                            }
+                    <form
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            put(route('password.update'), {
+                                preserveScroll: true,
+                                onSuccess: () => reset(),
+                                onError: (errors) => {
+                                    if (errors.password) {
+                                        passwordInput.current?.focus();
+                                    }
+                                    if (errors.current_password) {
+                                        currentPasswordInput.current?.focus();
+                                    }
+                                },
+                            });
                         }}
                         className="space-y-6"
                     >
-                        {({ errors, processing, recentlySuccessful }) => (
-                            <>
-                                <div className="grid gap-2">
+                        <input type="hidden" name="_token" value={csrf} />
+                        <input type="hidden" name="_method" value="PUT" />
+                        <div className="grid gap-2">
                                     <Label htmlFor="current_password">
                                         Current password
                                     </Label>
@@ -72,6 +89,8 @@ export default function Password() {
                                         className="mt-1 block w-full"
                                         autoComplete="current-password"
                                         placeholder="Current password"
+                                        value={data.current_password}
+                                        onChange={(e) => setData('current_password', e.target.value)}
                                     />
 
                                     <InputError
@@ -92,6 +111,8 @@ export default function Password() {
                                         className="mt-1 block w-full"
                                         autoComplete="new-password"
                                         placeholder="New password"
+                                        value={data.password}
+                                        onChange={(e) => setData('password', e.target.value)}
                                     />
 
                                     <InputError message={errors.password} />
@@ -109,38 +130,37 @@ export default function Password() {
                                         className="mt-1 block w-full"
                                         autoComplete="new-password"
                                         placeholder="Confirm password"
+                                        value={data.password_confirmation}
+                                        onChange={(e) => setData('password_confirmation', e.target.value)}
                                     />
 
-                                    <InputError
-                                        message={errors.password_confirmation}
-                                    />
+                                    <InputError message={errors.password_confirmation} />
                                 </div>
 
                                 <div className="flex items-center gap-4">
                                     <Button
+                                        type="submit"
                                         disabled={processing}
                                         data-test="update-password-button"
                                     >
-                                        Save password
+                                        {processing ? 'Saving...' : 'Save'}
                                     </Button>
 
                                     <Transition
-                                        show={recentlySuccessful}
+                                        show={Boolean(recentlySuccessful)}
                                         enter="transition ease-in-out"
                                         enterFrom="opacity-0"
                                         leave="transition ease-in-out"
                                         leaveTo="opacity-0"
                                     >
-                                        <p className="text-sm text-neutral-600">
+                                        <p className="text-sm text-green-600">
                                             Saved
                                         </p>
                                     </Transition>
-                                </div>
-                            </>
-                        )}
-                    </Form>
+                        </div>
+                    </form>
                 </div>
             </SettingsLayout>
         </AppLayout>
-    );
+    )
 }

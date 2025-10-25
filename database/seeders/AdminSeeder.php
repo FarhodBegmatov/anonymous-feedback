@@ -13,7 +13,7 @@ class AdminSeeder extends Seeder
         User::updateOrCreate(
             ['email' => 'admin@example.com'],
             [
-                'name' => 'Admin',
+                'name' => 'admin',
                 'email' => 'admin@example.com',
                 'password' => Hash::make('password123'),
                 'role' => 'admin', // 🔹 shu qator qo‘shildi

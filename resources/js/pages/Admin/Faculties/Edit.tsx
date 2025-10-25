@@ -1,5 +1,5 @@
 import { Faculty } from '@/types/Faculty';
-import Form from './Form';
+import FacultyForm from './FacultyForm';
 
 interface Props {
     faculty: Faculty;
@@ -7,7 +7,7 @@ interface Props {
 
 export default function Edit({ faculty }: Props) {
     return (
-        <Form faculty={faculty} />
+        <FacultyForm faculty={faculty} />
 
     );
 }

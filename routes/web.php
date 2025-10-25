@@ -1,8 +1,11 @@
 <?php
 
-use App\Http\Controllers\Admin\DepartmentController;
+
 use App\Http\Controllers\Admin\FacultyController;
+use App\Http\Controllers\Admin\DepartmentController;
+use App\Http\Controllers\Admin\ManagerController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Manager\DashboardController;
 use App\Http\Controllers\FeedbackController;
 use App\Http\Controllers\MainController;
 use App\Http\Controllers\RatingController;
@@ -30,24 +33,36 @@ Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
 Route::get('/', [MainController::class, 'index'])->name('home');
 Route::get('/ratings', [RatingController::class, 'index'])->name('ratings.index');
 
-// Fakultet sahifasi
+// Faculty page
 Route::get('/faculty/{faculty}', [MainController::class, 'faculty'])->name('faculty.show');
 
-// Feedback form sahifasi
+// Feedback form page
 Route::get('/feedback/{department}', [MainController::class, 'feedbackForm'])->name('feedback.form');
 
-// Feedback saqlash
+// Save feedback
 Route::post('/feedback', [FeedbackController::class, 'store'])
     ->name('feedback.store');
 
 /*
 |--------------------------------------------------------------------------
-| Admin Routes (Inertia)
+| Manager Dashboard
 |--------------------------------------------------------------------------
 */
-
-Route::middleware(['auth'])->prefix('admin')->group(function () {
-    Route::resource('faculties', FacultyController::class)->except(['show']);
-    Route::resource('departments', DepartmentController::class)->except(['show']);
+Route::middleware(['web', 'auth', 'can:isManager'])->group(function () {
+    Route::get('/manager/dashboard', [DashboardController::class, 'index'])
+        ->name('manager.dashboard');
 });
 
+/*
+|--------------------------------------------------------------------------
+| Admin Routes
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['web', 'auth', 'can:isAdmin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::resource('faculties', FacultyController::class);
+        Route::resource('departments', DepartmentController::class);
+        Route::resource('managers', ManagerController::class);
+    });

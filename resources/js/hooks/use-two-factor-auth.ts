@@ -1,4 +1,8 @@
-import { qrCode, recoveryCodes, secretKey } from '@/routes/two-factor';
+import { route } from 'ziggy-js';
+
+const qrCode = () => route('two-factor.qr-code');
+const recoveryCodes = () => route('two-factor.recovery-codes');
+const secretKey = () => route('two-factor.secret-key');
 import { useCallback, useMemo, useState } from 'react';
 
 interface TwoFactorSetupData {
@@ -37,7 +41,7 @@ export const useTwoFactorAuth = () => {
 
     const fetchQrCode = useCallback(async (): Promise<void> => {
         try {
-            const { svg } = await fetchJson<TwoFactorSetupData>(qrCode.url());
+            const { svg } = await fetchJson<TwoFactorSetupData>(qrCode());
             setQrCodeSvg(svg);
         } catch {
             setErrors((prev) => [...prev, 'Failed to fetch QR code']);
@@ -48,7 +52,7 @@ export const useTwoFactorAuth = () => {
     const fetchSetupKey = useCallback(async (): Promise<void> => {
         try {
             const { secretKey: key } = await fetchJson<TwoFactorSecretKey>(
-                secretKey.url(),
+                secretKey()
             );
             setManualSetupKey(key);
         } catch {
@@ -70,7 +74,7 @@ export const useTwoFactorAuth = () => {
     const fetchRecoveryCodes = useCallback(async (): Promise<void> => {
         try {
             clearErrors();
-            const codes = await fetchJson<string[]>(recoveryCodes.url());
+            const codes = await fetchJson<string[]>(recoveryCodes());
             setRecoveryCodesList(codes);
         } catch {
             setErrors((prev) => [...prev, 'Failed to fetch recovery codes']);
