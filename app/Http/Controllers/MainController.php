@@ -2,76 +2,62 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Faculty;
 use App\Models\Department;
-use App\Models\Feedback;
-use Illuminate\Support\Facades\App;
+use App\Models\Faculty;
+use App\Repositories\FacultyRepository;
+use App\Repositories\FeedbackRepository;
+use App\Services\FeedbackRatingService;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class MainController extends Controller
 {
-    /**
-     * Home page: Fakultetlar ro'yxati
-     */
-    public function index()
-    {
-        // Barcha fakultetlar bilan birga munosabatlarni yuklash
-        $faculties = Faculty::with('departments', 'feedbacks')->get()->map(function ($faculty) {
-            $grades = $faculty->feedbacks->map(fn($f) => match ($f->grade) {
-                'good' => 5,
-                'average' => 3,
-                'bad' => 1,
-                default => null,
-            })->filter();
+    public function __construct(
+        private readonly FacultyRepository $facultyRepository,
+        private readonly FeedbackRepository $feedbackRepository,
+        private readonly FeedbackRatingService $ratingService
+    ) {}
 
+    /**
+     * Home page: List of faculties with statistics
+     */
+    public function index(): Response
+    {
+        $faculties = $this->facultyRepository->all();
+        $faculties->load('departments', 'feedbacks');
+
+        $facultiesData = $faculties->map(function ($faculty) {
             return [
                 'id' => $faculty->id,
                 'name' => $faculty->name,
                 'departments_count' => $faculty->departments->count(),
                 'feedback_count' => $faculty->feedbacks->count(),
-                'average_grade' => $grades->count() ? round($grades->avg(), 1) : null,
+                'average_grade' => $this->ratingService->calculateAverage($faculty->feedbacks),
             ];
         });
 
-        // ✅ Umumiy statistika
-        $total_faculties = $faculties->count();
-
-        $allGrades = Feedback::all()->map(fn($f) => match ($f->grade) {
-            'good' => 5,
-            'average' => 3,
-            'bad' => 1,
-            default => null,
-        })->filter();
-
-        $total_feedbacks = $allGrades->count();
-        $global_average_grade = $total_feedbacks ? round($allGrades->avg(), 1) : null;
+        // Global statistics
+        $allFeedbacks = $this->feedbackRepository->all();
 
         return Inertia::render('Home', [
-            'faculties' => $faculties,
+            'faculties' => $facultiesData,
             'locale' => app()->getLocale(),
             'translations' => __('messages'),
-
-            // ✅ Qo‘shimcha kiritilgan qiymatlar
-            'total_faculties' => $total_faculties,
-            'total_feedbacks' => $total_feedbacks,
-            'global_average_grade' => $global_average_grade,
+            'total_faculties' => $facultiesData->count(),
+            'total_feedbacks' => $allFeedbacks->count(),
+            'global_average_grade' => $this->ratingService->calculateAverage($allFeedbacks),
         ]);
     }
 
 
     /**
-     * Fakultet sahifasi: Kafedralar ro'yxati
+     * Faculty page: List of departments with statistics
      */
-    public function faculty(Faculty $faculty)
+    public function faculty(Faculty $faculty): Response
     {
-        $departments = $faculty->departments->map(function ($dept) {
-            $grades = $dept->feedbacks->map(fn($f) => match ($f->grade) {
-                'good' => 5,
-                'average' => 3,
-                'bad' => 1,
-                default => null,
-            })->filter();
+        $faculty->load('departments.feedbacks', 'feedbacks');
 
+        $departments = $faculty->departments->map(function ($dept) {
             return [
                 'id' => $dept->id,
                 'name' => $dept->name,
@@ -79,19 +65,12 @@ class MainController extends Controller
                 'good_feedback_count' => $dept->feedbacks->where('grade', 'good')->count(),
                 'average_feedback_count' => $dept->feedbacks->where('grade', 'average')->count(),
                 'bad_feedback_count' => $dept->feedbacks->where('grade', 'bad')->count(),
-                'average_grade' => $grades->count() ? round($grades->avg(), 1) : null,
+                'average_grade' => $this->ratingService->calculateAverage($dept->feedbacks),
             ];
         });
 
-        // fakultetning o‘rtacha reytingi
-        $allScores = $faculty->departments->flatMap(function ($dept) {
-            return $dept->feedbacks->map(fn($f) => match ($f->grade) {
-                'good' => 5,
-                'average' => 3,
-                'bad' => 1,
-                default => null,
-            });
-        })->filter();
+        // Faculty average rating from all departments
+        $allFeedbacks = $faculty->departments->flatMap(fn($dept) => $dept->feedbacks);
 
         return Inertia::render('Faculty', [
             'faculty' => [
@@ -99,23 +78,19 @@ class MainController extends Controller
                 'name' => $faculty->name,
                 'feedback_count' => $faculty->feedbacks->count(),
                 'department_count' => $faculty->departments()->count(),
-                'average_grade' => $allScores->count() ? round($allScores->avg(), 1) : null,
+                'average_grade' => $this->ratingService->calculateAverage($allFeedbacks),
             ],
             'departments' => $departments,
             'locale' => app()->getLocale(),
-            'translations' =>  __('messages'),
+            'translations' => __('messages'),
         ]);
     }
     /**
-     * Feedback form sahifasi
+     * Feedback form page for a specific department
      */
-    public function feedbackForm(Department $department)
+    public function feedbackForm(Department $department): Response
     {
-        $feedbacks = Feedback::where('department_id', $department->id)
-            ->whereNotNull('comment') // comment borlarini olib
-            ->orderByDesc('created_at')
-            ->paginate(10) // pagination 10 tadan
-            ->withQueryString(); // URLni saqlab qoladi
+        $feedbacks = $this->feedbackRepository->findByDepartmentWithComments($department->id);
 
         return Inertia::render('FeedbackForm', [
             'department' => $department,
@@ -124,5 +99,4 @@ class MainController extends Controller
             'translations' => __('messages'),
         ]);
     }
-
 }

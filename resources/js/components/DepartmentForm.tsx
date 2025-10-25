@@ -1,6 +1,6 @@
+import type { Department } from '@/types/Department';
 import { Link, useForm } from '@inertiajs/react';
 import React from 'react';
-import { toast } from 'react-toastify';
 
 interface LocalizedName {
     en: string;
@@ -22,15 +22,9 @@ interface Faculty {
     };
 }
 
-interface Department {
-    id: number;
-    faculty_id: number;
-    name: LocalizedName;
-}
-
 interface Props {
     faculties: Faculty[];
-    department?: Department; // Agar bu mavjud bo‘lsa → edit rejim
+    department?: Department;
 }
 
 const ROUTE_DEPARTMENTS = '/admin/departments';
@@ -47,7 +41,6 @@ export default function DepartmentForm({ faculties, department }: Props) {
         e.preventDefault();
 
         if (form.data.faculty_id === 0) {
-            toast.error('Please select a faculty');
             return;
         }
 
@@ -57,23 +50,15 @@ export default function DepartmentForm({ faculties, department }: Props) {
                 _method: 'put',
             }));
 
-            form.post(`${ROUTE_DEPARTMENTS}/${department?.id}`, {
-                onSuccess: () =>
-                    toast.success('Department updated successfully'),
-            });
+            form.post(`${ROUTE_DEPARTMENTS}/${department?.id}`);
         } else {
-            form.post(ROUTE_DEPARTMENTS, {
-                onSuccess: () => {
-                    toast.success('Department created successfully');
-                    form.reset();
-                },
-            });
+            form.post(ROUTE_DEPARTMENTS);
         }
     };
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Fakultet tanlash */}
+            {/* Faculty selection */}
             <div>
                 <label className="mb-1 block font-medium" htmlFor="faculty">
                     Faculty
@@ -100,7 +85,7 @@ export default function DepartmentForm({ faculties, department }: Props) {
                 )}
             </div>
 
-            {/* Lokal nomlar */}
+            {/* Localized names */}
             {(['en', 'uz', 'ru'] as const).map((lang) => (
                 <div key={lang}>
                     <label className="mb-1 block font-medium">
@@ -125,7 +110,7 @@ export default function DepartmentForm({ faculties, department }: Props) {
                 </div>
             ))}
 
-            {/* Tugmalar */}
+            {/* Action buttons */}
             <div className="mt-4 flex items-center gap-4">
                 <button
                     type="submit"

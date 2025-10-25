@@ -1,23 +1,11 @@
 import AdminLayout from '@/layouts/AdminLayout';
+import type { DepartmentCreatePageProps } from '@/types/Department';
 import { Head } from '@inertiajs/react';
-import DepartmentForm from './DepartmentForm';
+import DepartmentForm from '../../../components/DepartmentForm';
 
-interface Faculty {
-    id: number;
-    name: {
-        en: string;
-        uz: string;
-        ru: string;
-    };
-}
-
-interface Props {
-    faculties: Faculty[];
-}
-
-export default function Create({ faculties }: Props) {
+export default function Create({ faculties }: DepartmentCreatePageProps) {
     return (
-        <AdminLayout>
+        <AdminLayout title={'Create Department'}>
             <Head title="Create Department" />
             <div className="mx-auto mt-10 max-w-2xl rounded-2xl bg-white p-6 shadow-lg">
                 <h1 className="mb-6 text-2xl font-semibold">

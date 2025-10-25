@@ -1,88 +1,23 @@
+import PageHeader from '@/components/PageHeader';
+import { useDelete } from '@/hooks/useDelete';
 import AdminLayout from '@/layouts/AdminLayout';
-import { Head, Link} from '@inertiajs/react';
+import type { Manager, ManagersPageProps } from '@/types/Manager';
+import { Head, Link } from '@inertiajs/react';
 import { useEffect } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-// Manager interface
-interface Manager {
-    id: number;
-    name: string;
-    email: string;
-    manageable: {
-        name: { en?: string; uz?: string; ru?: string };
-    } | null;
-}
-
-// Pagination interfaces
-interface PaginationLink {
-    url: string | null;
-    label: string;
-    active: boolean;
-}
-
-interface PaginationMeta {
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-}
-
-interface ManagersProps {
-    data: Manager[];
-    links: PaginationLink[];
-    meta: PaginationMeta;
-}
-
-interface Props {
-    managers: ManagersProps;
-    flash?: { success?: string; error?: string };
-}
-
-export default function Index({ managers, flash }: Props) {
+export default function Index({ managers, flash }: ManagersPageProps) {
+    const { deleteResource, isDeleting } = useDelete({
+        resourceName: 'manager',
+    });
     useEffect(() => {
         if (flash?.success) toast.success(flash.success);
         if (flash?.error) toast.error(flash.error);
     }, [flash]);
 
     const handleDelete = async (id: number) => {
-        if (!confirm('Are you sure you want to delete this manager?')) {
-            return;
-        }
-
-        console.log('Attempting to delete manager with ID:', id);
-
-        try {
-            const formData = new FormData();
-            formData.append('_method', 'DELETE');
-
-            const response = await fetch(`/admin/managers/${id}`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Accept': 'application/json',
-                },
-                body: formData
-            });
-
-            console.log('Delete response status:', response.status);
-
-            if (response.ok) {
-                const data = await response.json();
-                console.log('Delete successful, response:', data);
-                toast.success('Manager deleted successfully', {
-                    onClose: () => window.location.reload()
-                });
-            } else {
-                const errorData = await response.json();
-                console.error('Delete failed:', errorData);
-                toast.error(errorData.message || 'Error deleting manager');
-            }
-        } catch (error) {
-            console.error('Delete error:', error);
-            toast.error('An error occurred while deleting the manager');
-        }
+        await deleteResource(`/admin/managers/${id}`);
     };
 
     return (
@@ -91,29 +26,14 @@ export default function Index({ managers, flash }: Props) {
             <ToastContainer position="top-right" autoClose={3000} />
 
             <div className="mx-auto mt-10 max-w-7xl rounded-2xl bg-white p-6 shadow-lg">
-                <div className="mb-6 flex items-center justify-between">
-                    <h1 className="text-2xl font-semibold">Managers</h1>
-                    <div className="flex items-center space-x-3">
-                    <Link
-                        href="/admin/faculties"
-                        className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                    >
-                        Faculties
-                    </Link>
-                    <Link
-                        href="/admin/departments"
-                        className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                    >
-                        Departments
-                    </Link>
-                    <Link
-                        href="/admin/managers/create"
-                        className="rounded bg-green-600 px-4 py-2 text-white hover:bg-blue-700"
-                    >
-                        + Create Manager
-                    </Link>
-                    </div>
-                </div>
+                <PageHeader
+                    title="Managers"
+                    actions={[
+                        { label: 'Faculties', href: '/admin/faculties', variant: 'primary' },
+                        { label: 'Departments', href: '/admin/departments', variant: 'primary' },
+                        { label: '+ Create Manager', href: '/admin/managers/create', variant: 'success' },
+                    ]}
+                />
 
                 <div className="overflow-x-auto">
                     <table className="w-full border-collapse border border-gray-200 text-left text-sm">
@@ -133,7 +53,7 @@ export default function Index({ managers, flash }: Props) {
                         </thead>
                         <tbody>
                             {managers.data.length > 0 ? (
-                                managers.data.map((m, i) => (
+                                managers.data.map((m: Manager, i: number) => (
                                     <tr key={m.id} className="hover:bg-gray-50">
                                         <td className="border px-4 py-2">
                                             {i + 1}
@@ -163,9 +83,10 @@ export default function Index({ managers, flash }: Props) {
                                             </Link>
                                             <button
                                                 onClick={() =>
-                                                    handleDelete(m.id)
+                                                    void handleDelete(m.id)
                                                 }
-                                                className="rounded bg-red-600 px-3 py-1 text-white hover:bg-red-700"
+                                                disabled={isDeleting}
+                                                className="rounded bg-red-600 px-3 py-1 text-white hover:bg-red-700 disabled:opacity-50"
                                             >
                                                 Delete
                                             </button>

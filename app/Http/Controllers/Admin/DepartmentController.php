@@ -3,87 +3,98 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Department\StoreDepartmentRequest;
+use App\Http\Requests\Department\UpdateDepartmentRequest;
 use App\Models\Department;
-use App\Models\Faculty;
-use Illuminate\Http\Request;
+use App\Services\DepartmentService;
+use App\Services\FacultyService;
 use Inertia\Inertia;
+use Inertia\Response;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 
 class DepartmentController extends Controller
 {
-    public function index()
-    {
-        $departments = Department::with('faculty')->get();
-        return Inertia::render('Admin/Departments/Index', compact('departments'));
-    }
+    public function __construct(
+        private DepartmentService $departmentService,
+        private FacultyService $facultyService
+    ) {}
 
-    public function create()
+    public function index(): Response
     {
-        $faculties = Faculty::all();
-        return Inertia::render('Admin/Departments/Create', compact('faculties'));
-    }
-
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'faculty_id' => 'required|exists:faculties,id',
-            'name.en' => 'required|string|unique:departments,name->en',
-            'name.uz' => 'required|string',
-            'name.ru' => 'required|string',
+        return Inertia::render('Admin/Departments/Index', [
+            'departments' => $this->departmentService->getAllDepartments(),
         ]);
-
-        Department::create([
-            'faculty_id' => $validated['faculty_id'],
-            'name' => $validated['name'],
-        ]);
-
-        // Flash xabar bilan qaytarish
-        return redirect()
-            ->route('admin.departments.index')
-            ->with('success', 'Bo‘lim muvaffaqiyatli qo‘shildi!');
     }
 
-
-//    public function show(Department $department)
-//    {
-//        return Inertia::render('Admin/Departments/FacultyForm', compact('department'));
-//    }
-
-    public function edit(Department $department)
+    public function create(): Response
     {
-        $faculties = Faculty::all();
+        return Inertia::render('Admin/Departments/Create', [
+            'faculties' => $this->facultyService->getAllFaculties(),
+        ]);
+    }
 
+    public function store(StoreDepartmentRequest $request): RedirectResponse
+    {
+        try {
+            $this->departmentService->createDepartment($request->validated());
+
+            return redirect()->route('admin.departments.index')
+                ->with('success', 'Department created successfully');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Error creating department: ' . $e->getMessage());
+        }
+    }
+
+    public function edit(Department $department): Response
+    {
         return Inertia::render('Admin/Departments/Edit', [
-            'department' => $department->toArray(),
-            'faculties' => $faculties,
+            'department' => $department,
+            'faculties' => $this->facultyService->getAllFaculties(),
         ]);
     }
 
-    public function update(Request $request, Department $department)
+    public function update(UpdateDepartmentRequest $request, Department $department): RedirectResponse
     {
-        $validated = $request->validate([
-            'faculty_id' => 'required|exists:faculties,id',
-            'name.en' => 'required|string|max:255',
-            'name.uz' => 'required|string|max:255',
-            'name.ru' => 'required|string|max:255',
-        ]);
+        try {
+            $this->departmentService->updateDepartment($department, $request->validated());
 
-        $department->update([
-            'faculty_id' => $validated['faculty_id'],
-            'name' => $validated['name'],
-        ]);
-
-        // ✅ Flash message bilan qayta yo‘naltirish
-        return redirect()
-            ->route('admin.departments.index')
-            ->with('success', 'Department updated successfully!');
+            return redirect()->route('admin.departments.index')
+                ->with('success', 'Department updated successfully');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Error updating department: ' . $e->getMessage());
+        }
     }
 
-    public function destroy(Department $department)
+    public function destroy(Department $department): JsonResponse|RedirectResponse
     {
-        $department->delete();
+        try {
+            $this->departmentService->deleteDepartment($department);
 
-        // Inertia orqali darhol index sahifani yangilash
-        $departments = Department::with('faculty')->get();
-        return Inertia::render('Admin/Departments/Index', compact('departments'));
+            // JSON response for AJAX requests
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Department deleted successfully'
+                ]);
+            }
+
+            // Redirect for regular requests
+            return redirect()->route('admin.departments.index')
+                ->with('success', 'Department deleted successfully');
+        } catch (\Exception $e) {
+            // JSON error response for AJAX requests
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage()
+                ], 400);
+            }
+
+            return redirect()->back()
+                ->with('error', $e->getMessage());
+        }
     }
 }

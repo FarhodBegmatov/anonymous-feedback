@@ -3,163 +3,114 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Manager\StoreManagerRequest;
+use App\Http\Requests\Manager\UpdateManagerRequest;
 use App\Models\User;
-use App\Models\Faculty;
-use App\Models\Department;
+use App\Services\ManagerService;
+use App\Services\FacultyService;
+use App\Services\DepartmentService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Hash;
+use Inertia\Response;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 
 class ManagerController extends Controller
 {
-    public function index(Request $request)
+    public function __construct(
+        private ManagerService $managerService,
+        private FacultyService $facultyService,
+        private DepartmentService $departmentService
+    ) {}
+
+    public function index(Request $request): Response
     {
-        $query = User::where('role', 'manager')->with('manageable');
-
-        if ($search = $request->input('search')) {
-            $query->where(fn($q) =>
-            $q->where('name', 'like', "%{$search}%")
-                ->orWhere('email', 'like', "%{$search}%")
-            );
-        }
-
-        $typeMap = ['faculty' => Faculty::class, 'department' => Department::class];
-        if ($type = $request->input('type')) {
-            if(isset($typeMap[$type])) {
-                $query->where('manageable_type', $typeMap[$type]);
-            }
-        }
-
-        $managers = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
+        $filters = $request->only(['search', 'type']);
+        $managers = $this->managerService->getPaginatedManagers(10, $filters);
 
         return Inertia::render('Admin/Managers/Index', [
             'managers' => $managers,
-            'filters' => $request->only(['search', 'type']),
-            'flash' => [
-                'success' => session('success'),
-                'error' => session('error'),
-            ],
+            'filters' => $filters,
         ]);
     }
 
-    public function create()
+    public function create(): Response
     {
         return Inertia::render('Admin/Managers/Create', [
-            'faculties' => Faculty::all(),
-            'departments' => Department::all(),
-            'flash' => [
-                'success' => session('success'),
-                'error' => session('error'),
-            ],
+            'faculties' => $this->facultyService->getAllFaculties(),
+            'departments' => $this->departmentService->getAllDepartments(),
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreManagerRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6',
-            'manageable_type' => 'required|in:faculty,department',
-            'manageable_id' => ['required','integer',
-                $request->manageable_type==='faculty' ? 'exists:faculties,id' : 'exists:departments,id'
-            ],
-        ]);
-
         try {
-            User::create([
-                'name' => $validated['name'],
-                'email' => $validated['email'],
-                'password' => Hash::make($validated['password']),
-                'role' => 'manager',
-                'manageable_type' => $validated['manageable_type']==='faculty' ? Faculty::class : Department::class,
-                'manageable_id' => $validated['manageable_id'],
-            ]);
+            $this->managerService->createManager($request->validated());
 
             return redirect()->route('admin.managers.index')
-                ->with('success', 'Manager muvaffaqiyatli yaratildi!');
+                ->with('success', 'Manager created successfully');
         } catch (\Exception $e) {
-            return back()->with('error','Manager yaratishda xatolik: '.$e->getMessage())->withInput();
+            return redirect()->back()
+                ->with('error', 'Error creating manager: ' . $e->getMessage())
+                ->withInput();
         }
     }
 
-    public function edit(User $manager)
+    public function edit(User $manager): Response
     {
-        $manager->load('manageable'); // manageable relation
+        $manager = $this->managerService->getManagerById($manager->id);
 
-        // O'zbekcha nomini olish
+        // Get Uzbek name for display
         $manageableNameUz = $manager->manageable ? $manager->manageable->name->uz ?? null : null;
 
         return Inertia::render('Admin/Managers/Edit', [
             'manager' => $manager,
-            'manageableNameUz' => $manageableNameUz, // faqat o'zbekcha nom
-            'faculties' => Faculty::all(),
-            'departments' => Department::all(),
-            'flash' => [
-                'success' => session('success'),
-                'error' => session('error'),
-            ],
+            'manageableNameUz' => $manageableNameUz,
+            'faculties' => $this->facultyService->getAllFaculties(),
+            'departments' => $this->departmentService->getAllDepartments(),
         ]);
     }
 
-    public function update(Request $request, User $manager)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $manager->id,
-            'manageable_type' => 'required|in:App\Models\Faculty,App\Models\Department',
-            'manageable_id' => 'required|integer',
-            'password' => 'nullable|string|min:6',
-        ]);
-
-        $manager->update([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'manageable_type' => $validated['manageable_type'],
-            'manageable_id' => $validated['manageable_id'],
-            'password' => $validated['password']
-                ? Hash::make($validated['password'])
-                : $manager->password,
-        ]);
-
-        if ($request->wantsJson()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'Manager muvaffaqiyatli yangilandi!',
-                'manager' => $manager,
-            ]);
-        }
-
-        return redirect()->route('admin.managers.index')
-            ->with('success', 'Manager muvaffaqiyatli yangilandi!');
-    }
-
-
-
-    public function destroy(Request $request, User $manager)
+    public function update(UpdateManagerRequest $request, User $manager): RedirectResponse
     {
         try {
-            $manager->delete();
-            
-            if ($request->wantsJson() || $request->ajax()) {
+            $this->managerService->updateManager($manager, $request->validated());
+
+            return redirect()->route('admin.managers.index')
+                ->with('success', 'Manager updated successfully');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Error updating manager: ' . $e->getMessage());
+        }
+    }
+
+    public function destroy(User $manager): JsonResponse|RedirectResponse
+    {
+        try {
+            $this->managerService->deleteManager($manager);
+
+            // JSON response for AJAX requests
+            if (request()->expectsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Manager muvaffaqiyatli o\'chirildi.'
+                    'message' => 'Manager deleted successfully'
                 ]);
             }
-            
+
+            // Redirect for regular requests
             return redirect()->route('admin.managers.index')
-                ->with('success', 'Manager muvaffaqiyatli o\'chirildi.');
-                
+                ->with('success', 'Manager deleted successfully');
         } catch (\Exception $e) {
-            if ($request->wantsJson() || $request->ajax()) {
+            // JSON error response for AJAX requests
+            if (request()->expectsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Manager o\'chirishda xatolik: ' . $e->getMessage()
-                ], 500);
+                    'message' => $e->getMessage()
+                ], 400);
             }
-            
-            return back()->with('error', 'Manager o\'chirishda xatolik: ' . $e->getMessage());
+
+            return redirect()->back()
+                ->with('error', $e->getMessage());
         }
     }
 }

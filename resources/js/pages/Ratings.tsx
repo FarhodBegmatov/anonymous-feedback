@@ -1,29 +1,17 @@
-// resources/js/Pages/Ratings.tsx
 import Layout from '@/components/Layout';
+import type { RatingColorClass, RatingsPageProps } from '@/types/Ratings';
 import { Link } from '@inertiajs/react';
 import { useState } from 'react';
 
-interface Department {
-    id: number;
-    name: Record<'en' | 'uz' | 'ru', string>;
-    feedback_count: number;
-    average_grade: number | null;
-}
-
-interface Faculty {
-    id: number;
-    name: Record<'en' | 'uz' | 'ru', string>;
-    average_grade: number | null;
-    departments: Department[];
-}
-
-interface Props {
-    faculties: Faculty[];
-    locale: 'en' | 'uz' | 'ru';
-    translations: Record<string, string>;
-}
-
-export default function Ratings({ faculties, locale, translations }: Props) {
+export default function Ratings({ faculties, locale, translations }: RatingsPageProps) {
+    const getRatingColors = (rating: number): RatingColorClass => {
+        if (rating >= 4.0) {
+            return { textColor: 'text-green-600', bgColor: 'bg-green-500' };
+        } else if (rating < 3.0) {
+            return { textColor: 'text-red-600', bgColor: 'bg-red-500' };
+        }
+        return { textColor: 'text-yellow-600', bgColor: 'bg-yellow-600' };
+    };
     const [hoveredFaculty, setHoveredFaculty] = useState<number | null>(null);
 
     const sortedFaculties = [...faculties].sort(
@@ -73,32 +61,16 @@ export default function Ratings({ faculties, locale, translations }: Props) {
                                         {translations.average_grade}:
                                     </span>
                                     <span
-                                        className={`text-lg font-bold ${
-                                            (faculty.average_grade ?? 0) >= 4.0
-                                                ? 'text-green-600'
-                                                : (faculty.average_grade ??
-                                                        0) < 3.0
-                                                  ? 'text-red-600'
-                                                  : 'text-yellow-600'
-                                        }`}
+                                        className={`text-lg font-bold ${getRatingColors(faculty.average_grade ?? 0).textColor}`}
                                     >
                                         {faculty.average_grade
-                                            ? Number(
-                                                  faculty.average_grade,
-                                              ).toFixed(1)
+                                            ? Number(faculty.average_grade).toFixed(1)
                                             : '–'}
                                     </span>
                                 </div>
                                 <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-gray-200">
                                     <div
-                                        className={`h-3 transition-all duration-700 ease-out ${
-                                            (faculty.average_grade ?? 0) >= 4.0
-                                                ? 'bg-green-500'
-                                                : (faculty.average_grade ??
-                                                        0) < 3
-                                                  ? 'bg-red-500'
-                                                  : 'bg-yellow-600'
-                                        }`}
+                                        className={`h-3 transition-all duration-700 ease-out ${getRatingColors(faculty.average_grade ?? 0).bgColor}`}
                                         style={{
                                             width: `${((faculty.average_grade ?? 0) / 5) * 100}%`,
                                         }}
@@ -176,7 +148,7 @@ export default function Ratings({ faculties, locale, translations }: Props) {
                 </p>
             )}
 
-            {/* Eng yaxshi / Eng yomon kafedralar */}
+            {/* Best and Worst Departments */}
             <div className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-2">
                 <div className="rounded-2xl border border-green-200 bg-green-50 p-6 shadow-inner">
                     <h2 className="mb-4 text-2xl font-bold text-green-700">

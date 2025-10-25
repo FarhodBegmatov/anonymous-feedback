@@ -2,46 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Feedback;
-use App\Models\Department;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
+use App\Http\Requests\Feedback\StoreFeedbackRequest;
+use App\Services\FeedbackService;
 use Illuminate\Http\RedirectResponse;
 
 class FeedbackController extends Controller
 {
-    // Anonim feedback qoldirish
-    public function store(Request $request): RedirectResponse
+    public function __construct(
+        private readonly FeedbackService $feedbackService
+    ) {}
+
+    /**
+     * Store anonymous feedback
+     */
+    public function store(StoreFeedbackRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'department_id' => 'required|exists:departments,id',
-            'grade' => 'required|in:good,average,bad',
-            'comment' => 'nullable|string|max:1000',
-        ]);
+        try {
+            $this->feedbackService->createFeedback($request->validated());
 
-        Feedback::create($validated);
-
-        return back()->with('success', 'Fikr muvaffaqiyatli yuborildi!');
-    }
-
-    // Manager o'ziga tegishli feedbacklarni ko'radi
-    public function managerIndex()
-    {
-        $user = Auth::user();
-
-        if ($user->manageable_type === \App\Models\Faculty::class) {
-            $feedbacks = Feedback::whereIn('department_id',
-                Department::where('faculty_id', $user->manageable_id)->pluck('id')
-            )->latest()->paginate(10);
-        } else {
-            $feedbacks = Feedback::where('department_id', $user->manageable_id)
-                ->latest()
-                ->paginate(10);
+            return back()->with('success', 'Feedback submitted successfully!');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error submitting feedback: ' . $e->getMessage());
         }
-
-        return Inertia::render('Manager/Feedbacks/Index', [
-            'feedbacks' => $feedbacks
-        ]);
     }
 }

@@ -1,25 +1,7 @@
-// resources/js/pages/Home.tsx
 import Layout from '@/components/Layout';
+import type { HomePageProps, RatingColors } from '@/types/Home';
 import { Link } from '@inertiajs/react';
 
-interface Faculty {
-    id: number;
-    name: Record<'en' | 'uz' | 'ru', string>;
-    departments_count: number;
-    feedback_count: number;
-    average_grade?: number | null;
-}
-
-interface Props {
-    total_faculties: number;
-    total_feedbacks: number;
-    global_average_grade: number | null;
-    faculties: Faculty[];
-    locale: 'en' | 'uz' | 'ru';
-    translations: Record<string, string>;
-}
-
-// ESLint xatolarini bartaraf qilish uchun faqat kerakli propslarni saqlaymiz
 export default function Home({
     faculties,
     locale,
@@ -27,7 +9,17 @@ export default function Home({
     total_faculties,
     total_feedbacks,
     global_average_grade,
-}: Props) {
+}: HomePageProps) {
+    const getRatingColors = (rating: number): RatingColors => {
+        if (rating >= 4) {
+            return { ratingColor: 'text-green-600', barColor: 'bg-green-500' };
+        } else if (rating >= 3) {
+            return { ratingColor: 'text-yellow-500', barColor: 'bg-yellow-500' };
+        } else if (rating > 0) {
+            return { ratingColor: 'text-red-500', barColor: 'bg-red-500' };
+        }
+        return { ratingColor: 'text-gray-500', barColor: 'bg-gray-400' };
+    };
     return (
         <Layout translations={translations} locale={locale}>
             {/* Hero Section */}
@@ -41,7 +33,6 @@ export default function Home({
             </div>
 
             {/* Global Statistics Section */}
-            {/* 🌟 Global Statistics Section (Gradient Style) */}
             <div className="mx-auto mb-10 max-w-7xl px-4">
                 <div className="grid grid-cols-1 gap-6 text-center sm:grid-cols-3">
                     {/* Total Faculties */}
@@ -53,7 +44,7 @@ export default function Home({
                             {total_faculties}
                         </div>
                         <div className="mt-2 text-lg opacity-90">
-                            {translations.total_faculties || 'Jami fakultetlar'}
+                            {translations.total_faculties || 'Total Faculties'}
                         </div>
                     </div>
 
@@ -67,7 +58,7 @@ export default function Home({
                         </div>
                         <div className="mt-2 text-lg opacity-90">
                             {translations.total_feedbacks ||
-                                'Jami fikrlar soni'}
+                                'Total Feedbacks'}
                         </div>
                     </div>
 
@@ -80,7 +71,7 @@ export default function Home({
                             {global_average_grade ?? '-'}
                         </div>
                         <div className="mt-2 text-lg opacity-90">
-                            {translations.global_average_grade || 'Umumiy baho'}
+                            {translations.global_average_grade || 'Global Average'}
                         </div>
                     </div>
                 </div>
@@ -97,19 +88,7 @@ export default function Home({
                         {faculties.map((faculty) => {
                             const rating = faculty.average_grade ?? 0;
                             const progressWidth = `${(rating / 5) * 100}%`;
-
-                            let ratingColor = 'text-gray-500';
-                            let barColor = 'bg-gray-400';
-                            if (rating >= 4) {
-                                ratingColor = 'text-green-600';
-                                barColor = 'bg-green-500';
-                            } else if (rating >= 3) {
-                                ratingColor = 'text-yellow-500';
-                                barColor = 'bg-yellow-500';
-                            } else if (rating > 0) {
-                                ratingColor = 'text-red-500';
-                                barColor = 'bg-red-500';
-                            }
+                            const { ratingColor, barColor } = getRatingColors(rating);
 
                             return (
                                 <div

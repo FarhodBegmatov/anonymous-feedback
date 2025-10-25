@@ -1,49 +1,17 @@
 import Layout from '@/components/Layout';
-import { useForm, usePage} from '@inertiajs/react';
+import type { FeedbackFormProps, FlashMessages, GradeType } from '@/types/FeedbackForm';
+import { useForm, usePage } from '@inertiajs/react';
 import { FormEvent, useEffect, useState } from 'react';
 
-interface Department {
-    id: number;
-    name: { en: string; uz: string; ru: string };
-}
-
-interface Feedback {
-    id: number;
-    grade: string;
-    comment: string;
-    created_at: string;
-}
-
-interface PaginatedFeedback {
-    data: Feedback[];
-    links: {
-        url: string | null;
-        label: string;
-        active: boolean;
-    }[];
-}
-
-interface Props {
-    department: Department;
-    feedbacks: PaginatedFeedback;
-    locale: 'en' | 'uz' | 'ru';
-    translations: Record<string, string>;
-}
-
-interface FlashMessages {
-    success?: string;
-    error?: string;
-}
-
 export default function FeedbackForm({
-                                         department,
-                                         locale,
-                                         translations,
-                                     }: Props) {
+    department,
+    locale,
+    translations,
+}: FeedbackFormProps) {
     const { flash } = usePage<{ flash: FlashMessages }>().props;
     const [showFlash, setShowFlash] = useState(!!(flash?.success || flash?.error));
 
-// ✅ Flash xabardan keyin avtomatik yashirish
+    // Auto-hide flash message after 3 seconds
     useEffect(() => {
         if (flash?.success || flash?.error) {
             setShowFlash(true);
@@ -66,6 +34,22 @@ export default function FeedbackForm({
             onSuccess: () => reset(),
         });
     };
+
+    const getGradeButtonClass = (grade: GradeType, isActive: boolean): string => {
+        const baseClass = 'rounded-full text-white transition font-medium';
+        const activeClass = 'px-4 py-2 shadow-lg scale-105';
+        const inactiveClass = 'px-3 py-1.5';
+
+        const colorClasses = {
+            good: isActive ? 'bg-green-600' : 'bg-green-500 hover:bg-green-600',
+            average: isActive ? 'bg-yellow-600' : 'bg-yellow-500 hover:bg-yellow-600',
+            bad: isActive ? 'bg-red-600' : 'bg-red-400 hover:bg-red-600',
+        };
+
+        return `${baseClass} ${isActive ? activeClass : inactiveClass} ${colorClasses[grade]}`;
+    };
+
+    const grades: GradeType[] = ['good', 'average', 'bad'];
 
     return (
         <Layout locale={locale} translations={translations}>
@@ -90,32 +74,17 @@ export default function FeedbackForm({
                     <div>
                         <label className="mb-1 block text-gray-700">{translations.grade}</label>
                         <div className="flex space-x-2">
-                            {['good', 'average', 'bad'].map((grade) => {
+                            {grades.map((grade) => {
                                 const isActive = data.grade === grade;
                                 return (
                                     <button
                                         key={grade}
                                         type="button"
                                         onClick={() => setData('grade', grade)}
-                                        className={`rounded-full text-white transition font-medium
-        ${
-                                            grade === 'good'
-                                                ? isActive
-                                                    ? 'bg-green-600 px-4 py-2 shadow-lg scale-105'
-                                                    : 'bg-green-500 px-3 py-1.5 hover:bg-green-600'
-                                                : grade === 'average'
-                                                    ? isActive
-                                                        ? 'bg-yellow-600 px-4 py-2 shadow-lg scale-105'
-                                                        : 'bg-yellow-500 px-3 py-1.5 hover:bg-yellow-600'
-                                                    : isActive
-                                                        ? 'bg-red-600 px-4 py-2 shadow-lg scale-105'
-                                                        : 'bg-red-400 px-3 py-1.5 hover:bg-red-600'
-                                        }
-    `}
+                                        className={getGradeButtonClass(grade, isActive)}
                                     >
                                         {translations[grade]}
                                     </button>
-
                                 );
                             })}
                         </div>

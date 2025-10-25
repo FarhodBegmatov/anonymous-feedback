@@ -5,7 +5,30 @@ export interface Faculty {
         uz: string;
         ru: string;
     };
-    departments_count?: number;
-    feedback_count?: number;
-    average_score?: number | null;
+    created_at?: string;
+    updated_at?: string;
+}
+
+export interface FacultyFormData {
+    name: {
+        en: string;
+        uz: string;
+        ru: string;
+    };
+}
+
+export interface FacultiesPageProps {
+    faculties: Faculty[];
+    flash?: {
+        success?: string;
+        error?: string;
+    };
+}
+
+export interface FacultyEditPageProps {
+    faculty: Faculty;
+    flash?: {
+        success?: string;
+        error?: string;
+    };
 }

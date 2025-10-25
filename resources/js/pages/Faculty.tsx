@@ -1,41 +1,17 @@
 import Layout from '@/components/Layout';
+import type { FacultyPageProps } from '@/types/FacultyPage';
 import { Link } from '@inertiajs/react';
-
-interface Department {
-    id: number;
-    name: { en: string; uz: string; ru: string };
-    feedback_count: number;
-    average_grade?: number | null;
-    good_feedback_count?: number | null;
-    average_feedback_count?: number | null;
-    bad_feedback_count?: number | null;
-}
-
-interface Faculty {
-    id: number;
-    name: { en: string; uz: string; ru: string };
-    feedback_count: number;
-    department_count: number;
-    average_grade?: number | null;
-}
-
-interface Props {
-    faculty: Faculty;
-    departments: Department[];
-    locale: 'en' | 'uz' | 'ru';
-    translations: Record<string, string>;
-}
 
 export default function FacultyPage({
     faculty,
     departments,
     locale,
     translations,
-}: Props) {
+}: FacultyPageProps) {
     return (
         <Layout locale={locale} translations={translations}>
             <div className="bg-gradient-to-br from-blue-50 to-gray-100">
-                {/* Fakultet nomi */}
+                {/* Faculty name */}
                 <div className="mb-6 rounded-lg bg-blue-900 p-6 text-white shadow">
                     <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
                         <h2 className="flex items-center text-2xl font-semibold">
@@ -45,7 +21,7 @@ export default function FacultyPage({
                     </div>
                 </div>
 
-                {/* Statistika */}
+                {/* Statistics */}
                 <div className="mb-6 grid gap-4 sm:grid-cols-3">
                     <div className="rounded-lg bg-gray-100 p-4 text-center shadow">
                         <i className="fas fa-list fa-2x mb-2 text-blue-600"></i>
@@ -76,7 +52,7 @@ export default function FacultyPage({
                     </div>
                 </div>
 
-                {/* Bo‘limlar ro‘yxati */}
+                {/* Departments list */}
                 <h3 className="mb-4 flex items-center text-xl font-semibold text-blue-800">
                     <i className="fas fa-sitemap mr-2 text-yellow-500"></i>
                     {translations.departments_sections}
@@ -94,7 +70,7 @@ export default function FacultyPage({
                                         {dept.name[locale] ?? dept.name['en']}
                                     </h5>
 
-                                    {/* Statistika */}
+                                    {/* Statistics */}
                                     <div className="mb-3 grid grid-cols-3 text-center text-sm">
                                         <div>
                                             <div className="font-bold text-blue-600">
@@ -123,7 +99,7 @@ export default function FacultyPage({
                                         </div>
                                     </div>
 
-                                    {/* Reyting taqsimoti */}
+                                    {/* Rating distribution */}
                                     <div>
                                         <small className="mb-1 block text-gray-500">
                                             {translations.score_distribution}:
@@ -178,7 +154,7 @@ export default function FacultyPage({
                                     </div>
                                 </div>
 
-                                {/* Tugma */}
+                                {/* Action button */}
                                 <div className="mt-auto border-t p-4">
                                     <Link
                                         href={`/feedback/${dept.id}/`}
@@ -197,7 +173,7 @@ export default function FacultyPage({
                     </p>
                 )}
 
-                {/* Orqaga qaytish */}
+                {/* Back button */}
                 <div className="mt-6">
                     <Link
                         href={`/`}

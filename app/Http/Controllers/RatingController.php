@@ -2,80 +2,65 @@
 
 namespace App\Http\Controllers;
 
+use App\Repositories\FacultyRepository;
+use App\Services\FeedbackRatingService;
 use Inertia\Inertia;
-use App\Models\Faculty;
+use Inertia\Response;
 
 class RatingController extends Controller
 {
-    public function index()
+    public function __construct(
+        private readonly FacultyRepository $facultyRepository,
+        private readonly FeedbackRatingService $ratingService
+    ) {}
+
+    public function index(): Response
     {
-        $locale = app()->getLocale();
+        $faculties = $this->facultyRepository->all();
+        $faculties->load('departments.feedbacks');
 
-        $faculties = Faculty::with(['departments' => function ($q) {
-            $q->withCount('feedbacks')
-                ->select('departments.*')
-                ->selectSub(function ($sub) {
-                    $sub->from('feedbacks')
-                        ->selectRaw("
-                          AVG(
-                              CASE
-                                  WHEN grade = 'good' THEN 5
-                                  WHEN grade = 'average' THEN 3
-                                  WHEN grade = 'bad' THEN 1
-                                  ELSE NULL
-                              END
-                          )
-                      ")
-                        ->whereColumn('feedbacks.department_id', 'departments.id');
-                }, 'average_grade');
-        }])
-            ->get()
-            ->map(function ($faculty) {
-                $facultyAverage = null;
-                if ($faculty->departments->count() > 0) {
-                    $facultyAverage = $faculty->departments
-                        ->avg(fn($dept) => (float) $dept->average_grade);
-                }
-
+        $facultiesData = $faculties->map(function ($faculty) {
+            $departments = $faculty->departments->map(function ($dept) {
                 return [
-                    'id' => $faculty->id,
-                    'name' => $faculty->name,
-                    'average_grade' => $facultyAverage ? round($facultyAverage, 1) : null,
-                    'departments' => $faculty->departments->map(function ($dept) {
-                        return [
-                            'id' => $dept->id,
-                            'name' => $dept->name,
-                            'feedback_count' => $dept->feedbacks_count,
-                            'average_grade' => $dept->average_grade
-                                ? round((float)$dept->average_grade, 1)
-                                : null,
-                        ];
-                    }),
+                    'id' => $dept->id,
+                    'name' => $dept->name,
+                    'feedback_count' => $dept->feedbacks->count(),
+                    'average_grade' => $this->ratingService->calculateAverage($dept->feedbacks),
                 ];
             });
 
-        // 🔽 Eng yaxshi va eng yomon kafedralarni ajratib olish
-        $allDepartments = $faculties->flatMap->departments;
+            // Calculate faculty average from all departments
+            $allFeedbacks = $faculty->departments->flatMap(fn($dept) => $dept->feedbacks);
+
+            return [
+                'id' => $faculty->id,
+                'name' => $faculty->name,
+                'average_grade' => $this->ratingService->calculateAverage($allFeedbacks),
+                'departments' => $departments,
+            ];
+        });
+
+        // Get the best and worst departments
+        $allDepartments = $facultiesData->flatMap(fn($faculty) => $faculty['departments']);
 
         $bestDepartments = $allDepartments
             ->filter(fn($dept) => $dept['average_grade'] !== null && $dept['average_grade'] > 4.5)
             ->sortByDesc('average_grade')
-            ->take(5) // faqat eng kuchli 5 ta
+            ->take(5)
             ->values();
 
         $worstDepartments = $allDepartments
             ->filter(fn($dept) => $dept['average_grade'] !== null && $dept['average_grade'] < 2.5)
             ->sortBy('average_grade')
-            ->take(5) // faqat eng yomon 5 ta
+            ->take(5)
             ->values();
 
         return Inertia::render('Ratings', [
-            'faculties' => $faculties,
+            'faculties' => $facultiesData,
             'bestDepartments' => $bestDepartments,
             'worstDepartments' => $worstDepartments,
-            'locale' => $locale,
-            'translations' =>  __('messages'),
-
+            'locale' => app()->getLocale(),
+            'translations' => __('messages'),
         ]);
     }
 }
