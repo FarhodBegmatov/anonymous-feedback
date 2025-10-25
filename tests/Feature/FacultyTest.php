@@ -64,7 +64,7 @@ class FacultyTest extends TestCase
         ];
 
         $this->actingAs($this->admin)
-            ->put("/admin/faculties/{$faculty->id}", $data)
+            ->put('/admin/faculties/' . $faculty->id, $data)
             ->assertRedirect('/admin/faculties')
             ->assertSessionHas('success');
 
@@ -79,7 +79,7 @@ class FacultyTest extends TestCase
         $faculty = Faculty::factory()->create();
 
         $this->actingAs($this->admin)
-            ->delete("/admin/faculties/{$faculty->id}")
+            ->delete('/admin/faculties/' . $faculty->id)
             ->assertRedirect('/admin/faculties')
             ->assertSessionHas('success');
 
@@ -99,5 +99,25 @@ class FacultyTest extends TestCase
     {
         $this->get('/admin/faculties')
             ->assertRedirect('/login');
+    }
+
+    public function test_cannot_delete_faculty_with_departments(): void
+    {
+        $faculty = Faculty::factory()->create();
+        
+        // Create a department under this faculty
+        \App\Models\Department::factory()->create([
+            'faculty_id' => $faculty->id,
+        ]);
+
+        $this->actingAs($this->admin)
+            ->delete('/admin/faculties/' . $faculty->id)
+            ->assertRedirect()
+            ->assertSessionHas('error');
+
+        // Faculty should still exist
+        $this->assertDatabaseHas('faculties', [
+            'id' => $faculty->id,
+        ]);
     }
 }

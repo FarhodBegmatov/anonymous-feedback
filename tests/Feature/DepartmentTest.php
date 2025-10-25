@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Department;
 use App\Models\Faculty;
+use App\Models\Feedback;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -41,8 +42,8 @@ class DepartmentTest extends TestCase
             'faculty_id' => $this->faculty->id,
             'name' => [
                 'en' => 'Computer Science',
-                'uz' => 'Kompyuter fanlari',
-                'ru' => 'Компьютерные науки',
+                'uz' => 'Kompyuter ilimlari',
+                'ru' => 'Kompyuternye nauki',
             ],
         ];
 
@@ -67,13 +68,13 @@ class DepartmentTest extends TestCase
             'faculty_id' => $this->faculty->id,
             'name' => [
                 'en' => 'Updated Department',
-                'uz' => 'Yangilangan Kafedra',
-                'ru' => 'Обновленная Кафедра',
+                'uz' => 'Yangilangan Bo\'lim',
+                'ru' => 'Obnovlennaya Kafedra',
             ],
         ];
 
         $this->actingAs($this->admin)
-            ->put("/admin/departments/{$department->id}", $data)
+            ->put('/admin/departments/' . $department->id, $data)
             ->assertRedirect('/admin/departments')
             ->assertSessionHas('success');
 
@@ -90,7 +91,7 @@ class DepartmentTest extends TestCase
         ]);
 
         $this->actingAs($this->admin)
-            ->delete("/admin/departments/{$department->id}")
+            ->delete('/admin/departments/' . $department->id)
             ->assertRedirect('/admin/departments')
             ->assertSessionHas('success');
 
@@ -110,5 +111,29 @@ class DepartmentTest extends TestCase
                 ],
             ])
             ->assertSessionHasErrors('faculty_id');
+    }
+
+    public function test_cannot_delete_department_with_feedbacks(): void
+    {
+        $department = Department::factory()->create([
+            'faculty_id' => $this->faculty->id,
+        ]);
+        
+        // Create feedback for this department
+        Feedback::create([
+            'department_id' => $department->id,
+            'grade' => 'good',
+            'comment' => 'Test feedback',
+        ]);
+
+        $this->actingAs($this->admin)
+            ->delete('/admin/departments/' . $department->id)
+            ->assertRedirect()
+            ->assertSessionHas('error');
+
+        // Department should still exist
+        $this->assertDatabaseHas('departments', [
+            'id' => $department->id,
+        ]);
     }
 }

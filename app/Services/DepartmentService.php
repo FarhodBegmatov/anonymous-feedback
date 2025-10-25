@@ -42,7 +42,7 @@ class DepartmentService
     {
         // Check if department has associated feedbacks before deletion
         if ($department->feedbacks()->count() > 0) {
-            throw new \Exception('Cannot delete department with existing feedbacks');
+            throw new \Exception('Cannot delete department with existing feedbacks. Please delete all feedbacks first.');
         }
 
         return $this->departmentRepository->delete($department);

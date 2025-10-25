@@ -40,7 +40,7 @@ class FacultyService
     {
         // Check if faculty has associated departments before deletion
         if ($faculty->departments()->count() > 0) {
-            throw new \Exception('Cannot delete faculty with existing departments');
+            throw new \Exception('Cannot delete faculty with existing departments. Please delete all departments first.');
         }
 
         return $this->facultyRepository->delete($faculty);
