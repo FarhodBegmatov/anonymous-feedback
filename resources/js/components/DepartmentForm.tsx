@@ -15,11 +15,7 @@ interface DepartmentFormData {
 
 interface Faculty {
     id: number;
-    name: {
-        en: string;
-        uz: string;
-        ru: string;
-    };
+    name: LocalizedName;
 }
 
 interface Props {
@@ -32,8 +28,9 @@ const ROUTE_DEPARTMENTS = '/admin/departments';
 export default function DepartmentForm({ faculties, department }: Props) {
     const isEdit = !!department;
 
+    // Initial form data
     const form = useForm<DepartmentFormData>({
-        faculty_id: department?.faculty_id || 0,
+        faculty_id: department?.faculty?.id || 0,
         name: department?.name || { en: '', uz: '', ru: '' },
     });
 

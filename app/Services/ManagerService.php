@@ -46,10 +46,12 @@ class ManagerService
 
     public function updateManager(User $manager, array $data): User
     {
+        $manageableType = $this->resolveManageableType($data['manageable_type']);
+
         $updateData = [
             'name' => $data['name'],
             'email' => $data['email'],
-            'manageable_type' => $data['manageable_type'],
+            'manageable_type' => $manageableType,
             'manageable_id' => $data['manageable_id'],
         ];
 
@@ -68,10 +70,10 @@ class ManagerService
 
     private function resolveManageableType(string $type): string
     {
-        return match($type) {
-            'faculty' => Faculty::class,
-            'department' => Department::class,
-            default => throw new \InvalidArgumentException("Invalid manageable type: {$type}")
+        return match ($type) {
+            'faculty', \App\Models\Faculty::class => \App\Models\Faculty::class,
+            'department', \App\Models\Department::class => \App\Models\Department::class,
+            default => throw new \InvalidArgumentException("Invalid manageable type: {$type}"),
         };
     }
 }

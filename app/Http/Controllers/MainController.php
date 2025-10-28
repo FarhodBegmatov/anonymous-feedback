@@ -4,9 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\Department;
 use App\Models\Faculty;
+use App\Repositories\DepartmentRepository;
 use App\Repositories\FacultyRepository;
 use App\Repositories\FeedbackRepository;
 use App\Services\FeedbackRatingService;
+use App\Services\SearchService;
+use App\Services\Transformers\DepartmentTransformer;
+use App\Services\Transformers\FacultyTransformer;
+use Illuminate\Http\Request as HttpRequest;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -14,36 +19,37 @@ class MainController extends Controller
 {
     public function __construct(
         private readonly FacultyRepository $facultyRepository,
+        private readonly DepartmentRepository $departmentRepository,
         private readonly FeedbackRepository $feedbackRepository,
-        private readonly FeedbackRatingService $ratingService
+        private readonly FeedbackRatingService $ratingService,
+        private readonly SearchService $searchService,
+        private readonly FacultyTransformer $facultyTransformer,
+        private readonly DepartmentTransformer $departmentTransformer
     ) {}
 
     /**
      * Home page: List of faculties with statistics
+     * Uses pagination and transformers (SOLID principles)
      */
     public function index(): Response
     {
-        $faculties = $this->facultyRepository->all();
-        $faculties->load('departments', 'feedbacks');
+        // Paginate faculties with relations
+        $faculties = $this->facultyRepository->paginateWithRelations(perPage: 12);
 
-        $facultiesData = $faculties->map(function ($faculty) {
-            return [
-                'id' => $faculty->id,
-                'name' => $faculty->name,
-                'departments_count' => $faculty->departments->count(),
-                'feedback_count' => $faculty->feedbacks->count(),
-                'average_grade' => $this->ratingService->calculateAverage($faculty->feedbacks),
-            ];
-        });
+        // Transform paginated data
+        $faculties->getCollection()->transform(
+            fn($faculty) => $this->facultyTransformer->transform($faculty)
+        );
 
-        // Global statistics
+        // Global statistics (not paginated)
         $allFeedbacks = $this->feedbackRepository->all();
+        $totalFaculties = $this->facultyRepository->all()->count();
 
         return Inertia::render('Home', [
-            'faculties' => $facultiesData,
+            'faculties' => $faculties,
             'locale' => app()->getLocale(),
             'translations' => __('messages'),
-            'total_faculties' => $facultiesData->count(),
+            'total_faculties' => $totalFaculties,
             'total_feedbacks' => $allFeedbacks->count(),
             'global_average_grade' => $this->ratingService->calculateAverage($allFeedbacks),
         ]);
@@ -52,51 +58,107 @@ class MainController extends Controller
 
     /**
      * Faculty page: List of departments with statistics
+     * Uses pagination and transformers (SOLID principles)
      */
-    public function faculty(Faculty $faculty): Response
+    public function faculty(HttpRequest $request, Faculty $faculty): Response
     {
-        $faculty->load('departments.feedbacks', 'feedbacks');
+        $faculty->load('departments', 'feedbacks');
 
-        $departments = $faculty->departments->map(function ($dept) {
-            return [
-                'id' => $dept->id,
-                'name' => $dept->name,
-                'feedback_count' => $dept->feedbacks->count(),
-                'good_feedback_count' => $dept->feedbacks->where('grade', 'good')->count(),
-                'average_feedback_count' => $dept->feedbacks->where('grade', 'average')->count(),
-                'bad_feedback_count' => $dept->feedbacks->where('grade', 'bad')->count(),
-                'average_grade' => $this->ratingService->calculateAverage($dept->feedbacks),
-            ];
-        });
+        $perPage = 12;
+        $search = $request->input('search');
 
-        // Faculty average rating from all departments
-        $allFeedbacks = $faculty->departments->flatMap(fn($dept) => $dept->feedbacks);
+        if ($search) {
+            // Agar foydalanuvchi qidiruv kiritgan bo‘lsa
+            $departments = $this->departmentRepository->searchDepartmentsInFaculty(
+                facultyId: $faculty->id,
+                query: $search,
+                perPage: $perPage
+            );
+        } else {
+            // Oddiy holda paginatsiya bilan chiqarish
+            $departments = $this->departmentRepository->paginateByFaculty(
+                facultyId: $faculty->id,
+                perPage: $perPage
+            );
+        }
+
+        // Har bir departmentni transform qilish
+        $departments->getCollection()->transform(
+            fn($dept) => $this->departmentTransformer->transform($dept)
+        );
 
         return Inertia::render('Faculty', [
-            'faculty' => [
-                'id' => $faculty->id,
-                'name' => $faculty->name,
-                'feedback_count' => $faculty->feedbacks->count(),
-                'department_count' => $faculty->departments()->count(),
-                'average_grade' => $this->ratingService->calculateAverage($allFeedbacks),
-            ],
+            'faculty' => $this->facultyTransformer->transformForDetailPage($faculty),
             'departments' => $departments,
+            'search' => $search,
             'locale' => app()->getLocale(),
             'translations' => __('messages'),
         ]);
     }
+
     /**
      * Feedback form page for a specific department
+     * Displays paginated feedbacks with comments
      */
     public function feedbackForm(Department $department): Response
     {
-        $feedbacks = $this->feedbackRepository->findByDepartmentWithComments($department->id);
+        // Get paginated feedbacks with comments for this department
+        $feedbacks = $this->feedbackRepository->findByDepartmentWithComments(
+            departmentId: $department->id,
+            perPage: 20
+        );
 
         return Inertia::render('FeedbackForm', [
             'department' => $department,
-            'feedbacks' => $feedbacks,
             'locale' => app()->getLocale(),
             'translations' => __('messages'),
         ]);
     }
+
+
+    public function search(HttpRequest $request)
+    {
+        $query = $this->searchService->sanitizeQuery($request->input('q'));
+
+        if (!$this->searchService->validateQuery($query)) {
+            return back()->with('error', 'Invalid search query');
+        }
+
+        $perPage = 12;
+
+        $results = match($request->input('type')) {
+            'faculty' => $this->searchService->searchFaculties($query),
+            'department' => $this->searchService->searchDepartments($query), // umumiy department search
+            'feedback' => $this->searchService->searchFeedbacks($query),
+            'manager' => $this->searchService->searchManagers($query), // yangi qo‘shildi
+            default => collect()
+        };
+
+        return Inertia::render('SearchResults', [
+            'results' => $results,
+            'query' => $query,
+            'type' => $request->input('type')
+        ]);
+    }
+
+
+    /**
+     * Get search suggestions (API endpoint)
+     */
+    public function suggestions(HttpRequest $request)
+    {
+        $query = $this->searchService->sanitizeQuery($request->input('q'));
+
+        if (!$this->searchService->validateQuery($query)) {
+            return response()->json([]);
+        }
+
+        return match($request->input('type')) {
+            'faculty' => $this->searchService->getFacultySuggestions($query),
+            'department' => $this->searchService->getDepartmentSuggestions($query),
+            'manager' => $this->searchService->getManagerSuggestions($query), // qo‘shildi
+            default => []
+        };
+    }
+
 }

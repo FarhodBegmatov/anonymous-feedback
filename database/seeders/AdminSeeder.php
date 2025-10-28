@@ -15,8 +15,8 @@ class AdminSeeder extends Seeder
             [
                 'name' => 'admin',
                 'email' => 'admin@example.com',
-                'password' => Hash::make('password123'),
-                'role' => 'admin', // 🔹 shu qator qo‘shildi
+                'password' => Hash::make('admin123'),
+                'role' => 'admin',
             ]
         );
     }

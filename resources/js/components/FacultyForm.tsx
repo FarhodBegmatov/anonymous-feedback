@@ -1,6 +1,7 @@
 import type { Faculty, FacultyFormData } from '@/types/Faculty';
 import { useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
+import { motion } from 'framer-motion';
 
 interface FacultyFormProps {
     faculty?: Faculty;
@@ -8,9 +9,9 @@ interface FacultyFormProps {
 }
 
 export default function FacultyForm({
-    faculty,
-    isEditing = false,
-}: FacultyFormProps) {
+                                        faculty,
+                                        isEditing = false,
+                                    }: FacultyFormProps) {
     const { data, setData, post, put, processing, errors } =
         useForm<FacultyFormData>({
             name: {
@@ -22,7 +23,6 @@ export default function FacultyForm({
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
-
         if (isEditing && faculty) {
             put(`/admin/faculties/${faculty.id}`);
         } else {
@@ -31,11 +31,25 @@ export default function FacultyForm({
     };
 
     return (
-        <form onSubmit={submit} className="space-y-6">
+        <motion.form
+            onSubmit={submit}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+            className="mx-auto w-full max-w-2xl space-y-8 rounded-xl bg-white p-8 shadow-lg"
+        >
+            <h2 className="text-2xl font-semibold text-gray-800">
+                {isEditing ? 'Edit Faculty' : 'Create Faculty'}
+            </h2>
+            <p className="text-sm text-gray-500">
+                Please fill in the multilingual names for this faculty.
+            </p>
+
+            {/* English */}
             <div>
                 <label
                     htmlFor="name_en"
-                    className="block text-sm font-medium text-gray-700"
+                    className="block text-sm font-medium text-gray-700 mb-1"
                 >
                     Name (English)
                 </label>
@@ -46,7 +60,12 @@ export default function FacultyForm({
                     onChange={(e) =>
                         setData('name', { ...data.name, en: e.target.value })
                     }
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    placeholder="Enter English name..."
+                    className={`block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        errors['name.en']
+                            ? 'border-red-500 animate-[shake_0.3s_ease-in-out]'
+                            : 'border-gray-300'
+                    }`}
                     required
                 />
                 {errors['name.en'] && (
@@ -56,10 +75,11 @@ export default function FacultyForm({
                 )}
             </div>
 
+            {/* Uzbek */}
             <div>
                 <label
                     htmlFor="name_uz"
-                    className="block text-sm font-medium text-gray-700"
+                    className="block text-sm font-medium text-gray-700 mb-1"
                 >
                     Name (Uzbek)
                 </label>
@@ -70,7 +90,12 @@ export default function FacultyForm({
                     onChange={(e) =>
                         setData('name', { ...data.name, uz: e.target.value })
                     }
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    placeholder="Masalan: Axborot texnologiyalari fakulteti"
+                    className={`block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        errors['name.uz']
+                            ? 'border-red-500 animate-[shake_0.3s_ease-in-out]'
+                            : 'border-gray-300'
+                    }`}
                     required
                 />
                 {errors['name.uz'] && (
@@ -80,10 +105,11 @@ export default function FacultyForm({
                 )}
             </div>
 
+            {/* Russian */}
             <div>
                 <label
                     htmlFor="name_ru"
-                    className="block text-sm font-medium text-gray-700"
+                    className="block text-sm font-medium text-gray-700 mb-1"
                 >
                     Name (Russian)
                 </label>
@@ -94,7 +120,12 @@ export default function FacultyForm({
                     onChange={(e) =>
                         setData('name', { ...data.name, ru: e.target.value })
                     }
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                    placeholder="Введите название на русском..."
+                    className={`block w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                        errors['name.ru']
+                            ? 'border-red-500 animate-[shake_0.3s_ease-in-out]'
+                            : 'border-gray-300'
+                    }`}
                     required
                 />
                 {errors['name.ru'] && (
@@ -104,22 +135,23 @@ export default function FacultyForm({
                 )}
             </div>
 
-            <div className="flex items-center justify-end space-x-3">
+            {/* Buttons */}
+            <div className="flex items-center justify-end gap-3 pt-4 border-t">
                 <button
                     type="button"
                     onClick={() => window.history.back()}
-                    className="rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600"
+                    className="rounded-lg border border-gray-300 px-5 py-2 text-gray-700 hover:bg-gray-100 transition"
                 >
                     Cancel
                 </button>
                 <button
                     type="submit"
                     disabled={processing}
-                    className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
+                    className="rounded-lg bg-gradient-to-r from-blue-600 to-blue-500 px-5 py-2 text-white font-medium shadow hover:from-blue-700 hover:to-blue-600 focus:ring-2 focus:ring-blue-400 disabled:opacity-50"
                 >
                     {processing ? 'Saving...' : isEditing ? 'Update' : 'Create'}
                 </button>
             </div>
-        </form>
+        </motion.form>
     );
 }

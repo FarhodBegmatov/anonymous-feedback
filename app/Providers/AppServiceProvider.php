@@ -19,6 +19,17 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             \App\Services\FacultyService::class
         );
+
+        $this->app->singleton(
+            \App\Services\SearchService::class,
+            function ($app) {
+                return new \App\Services\SearchService(
+                    $app->make(\App\Repositories\FacultyRepository::class),
+                    $app->make(\App\Repositories\DepartmentRepository::class),
+                    $app->make(\App\Repositories\FeedbackRepository::class)
+                );
+            }
+        );
     }
 
     /**

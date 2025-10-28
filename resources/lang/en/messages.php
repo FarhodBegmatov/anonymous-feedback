@@ -41,7 +41,9 @@ return [
     'submit' => 'Submit',
     'all_feedbacks' => 'All feedbacks',
     'total_faculties' => 'Total faculties',
+    'total_departments' => 'Total departments',
     'total_feedbacks' => 'Total feedbacks',
+    'average_rating' => 'Average Rating',
     'global_average_grade' => 'Overall average score',
 ];
 

@@ -37,7 +37,9 @@ return [
     'submit' => 'Отправить',
     'all_feedbacks' => 'Все отзывы',
     'total_faculties' => 'Всего факультетов',
+    'total_departments' => 'Всего кафедр',
     'total_feedbacks' => 'Всего отзывов',
+    'average_rating' => 'Средний рейтинг',
     'global_average_grade' => 'Общий средний балл',
 
 ];

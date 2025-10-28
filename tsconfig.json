@@ -34,7 +34,11 @@
         "forceConsistentCasingInFileNames": true,
         "resolveJsonModule": true,
         "isolatedModules": true,
-        "noEmit": true
+        "noEmit": true,
+        "typeRoots": [
+            "./node_modules/@types",
+            "./resources/js/types"
+        ]
     },
     "include": ["resources/js/**/*.ts", "resources/js/**/*.d.ts", "resources/js/**/*.tsx"]
 }

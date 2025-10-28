@@ -4,54 +4,75 @@ namespace App\Repositories;
 
 use App\Models\Feedback;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\Collection;
 
 class FeedbackRepository
 {
-    public function all(): Collection
+    /**
+     * Bazaviy so‘rov (modelga asoslangan)
+     */
+    protected function getBaseQuery()
     {
-        return Feedback::latest()->get();
+        return Feedback::query();
     }
 
-    public function paginate(int $perPage = 10): LengthAwarePaginator
+    /**
+     * Barcha fikrlarni olish
+     */
+    public function all(int $perPage = 20): LengthAwarePaginator
     {
-        return Feedback::latest()->paginate($perPage);
-    }
-
-    public function findByDepartment(int $departmentId, int $perPage = 10): LengthAwarePaginator
-    {
-        return Feedback::where('department_id', $departmentId)
+        return $this->getBaseQuery()
+            ->with(['department.faculty'])
             ->latest()
             ->paginate($perPage);
     }
 
-    public function findByDepartmentWithComments(int $departmentId, int $perPage = 10): LengthAwarePaginator
+    /**
+     * Fikrni ID orqali topish
+     */
+    public function find(int $id): ?Feedback
     {
-        return Feedback::where('department_id', $departmentId)
-            ->whereNotNull('comment')
-            ->latest()
-            ->paginate($perPage);
+        return Feedback::with(['department.faculty'])->find($id);
     }
 
-    public function findByDepartments(array $departmentIds, int $perPage = 10): LengthAwarePaginator
-    {
-        return Feedback::whereIn('department_id', $departmentIds)
-            ->latest()
-            ->paginate($perPage);
-    }
-
+    /**
+     * Yangi fikr yaratish
+     */
     public function create(array $data): Feedback
     {
         return Feedback::create($data);
     }
 
-    public function find(int $id): ?Feedback
+    /**
+     * Fikrni o‘chirish
+     */
+    public function delete(int $id): bool
     {
-        return Feedback::find($id);
+        $feedback = Feedback::find($id);
+        return $feedback ? $feedback->delete() : false;
     }
 
-    public function delete(Feedback $feedback): bool
+    /**
+     * 🔍 Barcha bo‘limlarda izlash
+     */
+    public function searchFeedbacks(string $query, int $perPage = 20): LengthAwarePaginator
     {
-        return $feedback->delete();
+        return $this->getBaseQuery()
+            ->where('comment', 'like', "%{$query}%")
+            ->with(['department.faculty'])
+            ->latest()
+            ->paginate($perPage);
+    }
+
+    /**
+     * 🔍 Muayyan bo‘lim ichida izlash
+     */
+    public function searchFeedbacksInDepartment(int $departmentId, string $query, int $perPage = 20): LengthAwarePaginator
+    {
+        return $this->getBaseQuery()
+            ->where('department_id', $departmentId)
+            ->where('comment', 'like', "%{$query}%")
+            ->with(['department.faculty'])
+            ->latest()
+            ->paginate($perPage);
     }
 }

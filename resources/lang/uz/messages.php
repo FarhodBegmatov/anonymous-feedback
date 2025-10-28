@@ -28,7 +28,7 @@ return [
     'all_faculty_ratings' => 'Barcha fakultetlar va markazlar reytingi',
     'best_departments' => 'Eng yaxshi kafedralar',
     'worst_departments' => 'Eng yomon kafedralar',
-    'no_results' => 'Hech biri topilmadi',
+    'no_results' => 'Hech nima topilmadi',
     'home' => 'Bosh sahifa',
     'app_name' => 'Universitet Feedback',
     'app_description' => "Ta'lim va boshqaruv xizmatlarini baholash tizimi",
@@ -37,7 +37,9 @@ return [
     'submit' => 'Yuborish',
     'all_feedbacks' => 'Barcha fikrlar',
     'total_faculties' => 'Jami fakultetlar',
+    'total_departments' => 'Jami kafedralar',
     'total_feedbacks' => 'Jami fikrlar',
+    'average_rating' => "O'rtacha baho",
     'global_average_grade' => "Umumiy o'rtacha ball",
 
 ];

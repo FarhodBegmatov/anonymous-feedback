@@ -1,3 +1,5 @@
+import { Paginator } from './Pagination';
+
 export interface LocalizedName {
     en: string;
     uz: string;
@@ -16,7 +18,7 @@ export interface HomePageProps {
     total_faculties: number;
     total_feedbacks: number;
     global_average_grade: number | null;
-    faculties: Faculty[];
+    faculties: Paginator<Faculty>;
     locale: 'en' | 'uz' | 'ru';
     translations: Record<string, string>;
 }

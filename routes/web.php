@@ -43,6 +43,10 @@ Route::get('/feedback/{department}', [MainController::class, 'feedbackForm'])->n
 Route::post('/feedback', [FeedbackController::class, 'store'])
     ->name('feedback.store');
 
+// Search routes
+Route::get('/search', [MainController::class, 'search'])->name('search');
+Route::get('/api/suggestions', [MainController::class, 'suggestions'])->name('suggestions');
+
 /*
 |--------------------------------------------------------------------------
 | Manager Dashboard

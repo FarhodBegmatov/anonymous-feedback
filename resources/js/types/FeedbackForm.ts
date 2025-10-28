@@ -1,42 +1,24 @@
-export interface LocalizedName {
+interface LocalizedName {
     en: string;
     uz: string;
     ru: string;
+    [key: string]: string | undefined;
 }
 
-export interface Department {
+interface Department {
     id: number;
     name: LocalizedName;
 }
 
-export interface Feedback {
-    id: number;
-    grade: string;
-    comment: string;
-    created_at: string;
-}
-
-export interface PaginationLink {
-    url: string | null;
-    label: string;
-    active: boolean;
-}
-
-export interface PaginatedFeedback {
-    data: Feedback[];
-    links: PaginationLink[];
+export interface FeedbackFormProps {
+    department: Department;
+    locale: 'en' | 'uz' | 'ru';
+    translations: Record<string, string>;
 }
 
 export interface FlashMessages {
     success?: string;
     error?: string;
-}
-
-export interface FeedbackFormProps {
-    department: Department;
-    feedbacks: PaginatedFeedback;
-    locale: 'en' | 'uz' | 'ru';
-    translations: Record<string, string>;
 }
 
 export type GradeType = 'good' | 'average' | 'bad';

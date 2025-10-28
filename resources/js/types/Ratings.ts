@@ -2,6 +2,7 @@ export interface LocalizedName {
     en: string;
     uz: string;
     ru: string;
+    [key: string]: string | undefined;
 }
 
 export interface Department {
@@ -18,10 +19,18 @@ export interface Faculty {
     departments: Department[];
 }
 
+export interface Statistics {
+    total_faculties: number;
+    total_departments: number;
+    total_feedbacks: number;
+    average_faculty_rating: number | null;
+}
+
 export interface RatingsPageProps {
     faculties: Faculty[];
     locale: 'en' | 'uz' | 'ru';
     translations: Record<string, string>;
+    statistics: Statistics;
 }
 
 export interface RatingColorClass {

@@ -1,27 +1,26 @@
 export interface Department {
     id: number;
-    faculty_id: number;
-    name: {
-        en: string;
-        uz: string;
-        ru: string;
-    };
-    faculty?: {
-        id: number;
-        name: {
-            en: string;
-            uz: string;
-            ru: string;
-        };
-    };
+    name: { en: string; uz: string; ru: string };
+    faculty: { id: number; name: { en: string } } | null;
+}
+
+export interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
 }
 
 export interface DepartmentsPageProps {
-    departments: Department[];
-    flash?: {
-        success?: string;
-        error?: string;
+    departments: {
+        data: Department[];
+        current_page: number;
+        last_page: number;
+        per_page: number;
+        total: number;
+        links: PaginationLink[];
     };
+    filters?: { search?: string };
+    flash?: { success?: string; error?: string };
 }
 
 export interface DepartmentEditPageProps {

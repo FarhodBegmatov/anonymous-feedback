@@ -8,6 +8,7 @@ use App\Http\Requests\Department\UpdateDepartmentRequest;
 use App\Models\Department;
 use App\Services\DepartmentService;
 use App\Services\FacultyService;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
@@ -20,10 +21,17 @@ class DepartmentController extends Controller
         private FacultyService $facultyService
     ) {}
 
-    public function index(): Response
+    /**
+     * Departments index with search and pagination
+     */
+    public function index(Request $request): Response
     {
+        $filters = $request->only(['search', 'faculty_id']);
+        $departments = $this->departmentService->getPaginatedDepartments(10, $filters);
+
         return Inertia::render('Admin/Departments/Index', [
-            'departments' => $this->departmentService->getAllDepartments(),
+            'departments' => $departments,
+            'filters' => $filters,
         ]);
     }
 
@@ -38,12 +46,12 @@ class DepartmentController extends Controller
     {
         try {
             $this->departmentService->createDepartment($request->validated());
-
             return redirect()->route('admin.departments.index')
                 ->with('success', 'Department created successfully');
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Error creating department: ' . $e->getMessage());
+                ->with('error', 'Error creating department: ' . $e->getMessage())
+                ->withInput();
         }
     }
 
@@ -59,7 +67,6 @@ class DepartmentController extends Controller
     {
         try {
             $this->departmentService->updateDepartment($department, $request->validated());
-
             return redirect()->route('admin.departments.index')
                 ->with('success', 'Department updated successfully');
         } catch (\Exception $e) {
@@ -73,28 +80,18 @@ class DepartmentController extends Controller
         try {
             $this->departmentService->deleteDepartment($department);
 
-            // JSON response for AJAX requests
             if (request()->expectsJson()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Department deleted successfully'
-                ]);
+                return response()->json(['success' => true, 'message' => 'Department deleted successfully']);
             }
 
-            // Redirect for regular requests
             return redirect()->route('admin.departments.index')
                 ->with('success', 'Department deleted successfully');
         } catch (\Exception $e) {
-            // JSON error response for AJAX requests
             if (request()->expectsJson()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => $e->getMessage()
-                ], 400);
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 400);
             }
 
-            return redirect()->back()
-                ->with('error', $e->getMessage());
+            return redirect()->back()->with('error', $e->getMessage());
         }
     }
 }

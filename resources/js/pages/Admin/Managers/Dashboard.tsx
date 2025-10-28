@@ -3,6 +3,12 @@ import type { DashboardProps, Department, Feedback } from '@/types/Dashboard';
 import { usePage } from '@inertiajs/react';
 import { useState } from 'react';
 
+// ✅ Har doim o‘zbek tilidagi nomni qaytaruvchi funksiya
+const getLocalizedName = (name: { uz: string; ru?: string; en?: string } | null | undefined): string => {
+    if (!name) return '';
+    return name.uz || '';
+};
+
 export default function Dashboard() {
     const { props } = usePage<DashboardProps>();
     const {
@@ -29,7 +35,7 @@ export default function Dashboard() {
 
     if (message) {
         return (
-            <AdminLayout title="Message">
+            <AdminLayout title="Xabar">
                 <div className="flex items-center justify-center h-[70vh]">
                     <div className="max-w-md rounded-xl bg-white p-8 text-center shadow-lg">
                         <p className="text-lg text-gray-700">{message}</p>
@@ -41,10 +47,10 @@ export default function Dashboard() {
 
     if (type === 'faculty' && faculty) {
         return (
-            <AdminLayout title="Faculty Management">
-                <div className="mx-auto max-w-5xl">
+            <AdminLayout title="Fakultet boshqaruvi">
+                <div className="mx-auto max-w-7xl">
                     <h1 className="mb-6 text-center text-3xl font-bold text-gray-800">
-                        🎓 {faculty.name.uz} Faculty
+                        🎓 {getLocalizedName(faculty.name)} fakulteti
                     </h1>
 
                     <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
@@ -54,19 +60,19 @@ export default function Dashboard() {
                                 className="rounded-xl bg-white p-6 shadow-md"
                             >
                                 <h2 className="text-lg font-semibold">
-                                    {dept.name.uz}
+                                    {getLocalizedName(dept.name)}
                                 </h2>
                                 <p className="mt-2 text-gray-600">
-                                    Feedbacks: {dept.feedback_count ?? 0}
+                                    Fikrlar soni: {dept.feedback_count ?? 0}
                                 </p>
                                 <p className="text-gray-600">
-                                    Average rating: {dept.average ?? 0}
+                                    O‘rtacha baho: {dept.average ?? 0}
                                 </p>
                                 <button
                                     className="mt-3 w-full rounded bg-indigo-500 px-4 py-2 text-white hover:bg-indigo-600"
                                     onClick={() => showDepartmentStats(dept)}
                                 >
-                                    View
+                                    Ko‘rish
                                 </button>
                             </div>
                         ))}
@@ -75,13 +81,13 @@ export default function Dashboard() {
                     {selectedDepartment && (
                         <div className="mt-10 rounded-xl bg-white p-6 shadow-md">
                             <h2 className="mb-4 text-xl font-semibold">
-                                🧑‍🏫 {selectedDepartment.name.uz} Department
+                                🧑‍🏫 {getLocalizedName(selectedDepartment.name)}
                             </h2>
                             <p className="mb-2">
-                                Average rating: {deptAverage ?? 0}
+                                O‘rtacha baho: {deptAverage ?? 0}
                             </p>
                             <p className="mb-4">
-                                Total feedbacks: {deptFeedbacks.length}
+                                Fikrlar soni: {deptFeedbacks.length}
                             </p>
 
                             {deptFeedbacks.length > 0 ? (
@@ -102,7 +108,7 @@ export default function Dashboard() {
                                 </ul>
                             ) : (
                                 <p className="text-gray-500 italic">
-                                    No feedbacks yet.
+                                    Hozircha fikrlar mavjud emas.
                                 </p>
                             )}
                         </div>
@@ -114,21 +120,21 @@ export default function Dashboard() {
 
     if (type === 'department' && department) {
         return (
-            <AdminLayout title="Department Management">
+            <AdminLayout title="Kafedra boshqaruvi">
                 <div className="mx-auto max-w-7xl">
                     <div className="mx-auto mt-10 max-w-7xl rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
                         <h1 className="mb-8 text-center text-3xl font-semibold text-gray-800">
                             🧑‍🏫{' '}
                             <span className="text-indigo-600">
-                                {department.name.uz}
+                                {getLocalizedName(department.name)}
                             </span>{' '}
-                            Department
+                            kafedrasi
                         </h1>
 
                         <div className="mb-6 grid grid-cols-2 gap-6">
                             <div className="flex flex-col items-center justify-center rounded-xl bg-gray-50 p-5 transition hover:bg-indigo-50">
                                 <div className="text-sm text-gray-500 uppercase">
-                                    Average Rating
+                                    O‘rtacha baho
                                 </div>
                                 <div className="mt-1 text-4xl font-bold text-indigo-700">
                                     {average ?? 0}
@@ -137,7 +143,7 @@ export default function Dashboard() {
 
                             <div className="flex flex-col items-center justify-center rounded-xl bg-gray-50 p-5 transition hover:bg-indigo-50">
                                 <div className="text-sm text-gray-500 uppercase">
-                                    Total Feedbacks
+                                    Umumiy fikrlar
                                 </div>
                                 <div className="mt-1 text-4xl font-bold text-indigo-700">
                                     {(feedbacks ?? []).length}
@@ -150,9 +156,7 @@ export default function Dashboard() {
                                 onClick={() => setShowFeedbacks(!showFeedbacks)}
                                 className="rounded-lg bg-indigo-600 px-6 py-2 font-medium text-white transition hover:bg-indigo-700"
                             >
-                                {showFeedbacks
-                                    ? 'Close'
-                                    : 'View Feedbacks'}
+                                {showFeedbacks ? 'Yopish' : 'Fikrlarni ko‘rish'}
                             </button>
                         </div>
                     </div>
@@ -177,7 +181,7 @@ export default function Dashboard() {
                                 </ul>
                             ) : (
                                 <p className="mt-4 text-center text-gray-500 italic">
-                                    No feedbacks yet.
+                                    Hozircha fikrlar mavjud emas.
                                 </p>
                             )}
                         </div>
@@ -188,9 +192,9 @@ export default function Dashboard() {
     }
 
     return (
-        <AdminLayout title="No Data Found">
+        <AdminLayout title="Ma'lumot topilmadi">
             <div className="flex items-center justify-center h-[70vh]">
-                <p className="text-lg text-gray-700">No data found.</p>
+                <p className="text-lg text-gray-700">Ma'lumot topilmadi.</p>
             </div>
         </AdminLayout>
     );

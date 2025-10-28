@@ -7,6 +7,7 @@ use App\Http\Requests\Faculty\StoreFacultyRequest;
 use App\Http\Requests\Faculty\UpdateFacultyRequest;
 use App\Models\Faculty;
 use App\Services\FacultyService;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
@@ -18,18 +19,31 @@ class FacultyController extends Controller
         private FacultyService $facultyService
     ) {}
 
-    public function index(): Response
+    /**
+     * Fakultetlar ro‘yxatini chiqarish (qidiruv bilan)
+     */
+    public function index(Request $request): Response
     {
+        $filters = $request->only(['search', 'type']);
+        $faculties = $this->facultyService->getPaginatedFaculties(10, $filters);
+
         return Inertia::render('Admin/Faculties/Index', [
-            'faculties' => $this->facultyService->getAllFaculties(),
+            'faculties' => $faculties,
+            'filters' => $filters,
         ]);
     }
 
+    /**
+     * Yangi fakultet yaratish sahifasi
+     */
     public function create(): Response
     {
         return Inertia::render('Admin/Faculties/Create');
     }
 
+    /**
+     * Yangi fakultetni saqlash
+     */
     public function store(StoreFacultyRequest $request): RedirectResponse
     {
         try {
@@ -39,17 +53,24 @@ class FacultyController extends Controller
                 ->with('success', 'Faculty created successfully');
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Error creating faculty: ' . $e->getMessage());
+                ->with('error', 'Error creating faculty: ' . $e->getMessage())
+                ->withInput();
         }
     }
 
+    /**
+     * Fakultetni tahrirlash sahifasi
+     */
     public function edit(Faculty $faculty): Response
     {
         return Inertia::render('Admin/Faculties/Edit', [
-            'faculty' => $faculty
+            'faculty' => $faculty,
         ]);
     }
 
+    /**
+     * Fakultetni yangilash
+     */
     public function update(UpdateFacultyRequest $request, Faculty $faculty): RedirectResponse
     {
         try {
@@ -63,12 +84,15 @@ class FacultyController extends Controller
         }
     }
 
+    /**
+     * Fakultetni o‘chirish
+     */
     public function destroy(Faculty $faculty): JsonResponse|RedirectResponse
     {
         try {
             $this->facultyService->deleteFaculty($faculty);
 
-            // JSON response for AJAX requests
+            // Agar AJAX orqali so‘rov kelsa
             if (request()->expectsJson()) {
                 return response()->json([
                     'success' => true,
@@ -76,11 +100,11 @@ class FacultyController extends Controller
                 ]);
             }
 
-            // Redirect for regular requests
+            // Oddiy redirect uchun
             return redirect()->route('admin.faculties.index')
                 ->with('success', 'Faculty deleted successfully');
         } catch (\Exception $e) {
-            // JSON error response for AJAX requests
+            // AJAX xato javobi
             if (request()->expectsJson()) {
                 return response()->json([
                     'success' => false,

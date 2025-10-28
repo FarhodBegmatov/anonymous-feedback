@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Manager;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateManagerRequest extends FormRequest
 {
@@ -19,7 +20,7 @@ class UpdateManagerRequest extends FormRequest
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $managerId,
             'password' => 'nullable|string|min:6',
-            'manageable_type' => 'required|in:App\Models\Faculty,App\Models\Department',
+            'manageable_type' => ['required', Rule::in(['faculty', 'department', Faculty::class, Department::class])],
             'manageable_id' => 'required|integer',
         ];
     }
