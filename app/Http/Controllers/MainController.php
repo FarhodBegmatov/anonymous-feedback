@@ -34,7 +34,7 @@ class MainController extends Controller
     public function index(): Response
     {
         // Paginate faculties with relations
-        $faculties = $this->facultyRepository->paginateWithRelations(perPage: 12);
+        $faculties = $this->facultyRepository->paginate(perPage: 6);
 
         // Transform paginated data
         $faculties->getCollection()->transform(
@@ -64,7 +64,7 @@ class MainController extends Controller
     {
         $faculty->load('departments', 'feedbacks');
 
-        $perPage = 12;
+        $perPage = 9;
         $search = $request->input('search');
 
         if ($search) {
@@ -112,32 +112,6 @@ class MainController extends Controller
             'department' => $department,
             'locale' => app()->getLocale(),
             'translations' => __('messages'),
-        ]);
-    }
-
-
-    public function search(HttpRequest $request)
-    {
-        $query = $this->searchService->sanitizeQuery($request->input('q'));
-
-        if (!$this->searchService->validateQuery($query)) {
-            return back()->with('error', 'Invalid search query');
-        }
-
-        $perPage = 12;
-
-        $results = match($request->input('type')) {
-            'faculty' => $this->searchService->searchFaculties($query),
-            'department' => $this->searchService->searchDepartments($query), // umumiy department search
-            'feedback' => $this->searchService->searchFeedbacks($query),
-            'manager' => $this->searchService->searchManagers($query), // yangi qo‘shildi
-            default => collect()
-        };
-
-        return Inertia::render('SearchResults', [
-            'results' => $results,
-            'query' => $query,
-            'type' => $request->input('type')
         ]);
     }
 

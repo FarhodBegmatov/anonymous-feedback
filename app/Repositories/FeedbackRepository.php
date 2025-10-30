@@ -75,4 +75,13 @@ class FeedbackRepository
             ->latest()
             ->paginate($perPage);
     }
+
+    public function findByDepartmentWithComments(int $departmentId, int $perPage)
+    {
+        return $this->model
+            ->where('department_id', $departmentId)
+            ->with(['comments.user', 'department', 'user']) // kerakli relatsiyalarni yuklash
+            ->orderByDesc('created_at')
+            ->paginate($perPage);
+    }
 }

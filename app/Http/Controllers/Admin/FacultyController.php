@@ -25,7 +25,7 @@ class FacultyController extends Controller
     public function index(Request $request): Response
     {
         $filters = $request->only(['search', 'type']);
-        $faculties = $this->facultyService->getPaginatedFaculties(10, $filters);
+        $faculties = $this->facultyService->getPaginatedFaculties(5, $filters);
 
         return Inertia::render('Admin/Faculties/Index', [
             'faculties' => $faculties,

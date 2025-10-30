@@ -58,7 +58,15 @@ class FacultyRepository
     {
         $query = $this->model->query();
 
-        // Qidiruv filteri
+        // Only load counts if the relationships exist
+        if (method_exists($this->model, 'departments')) {
+            $query->withCount('departments');
+        }
+        if (method_exists($this->model, 'feedbacks')) {
+            $query->withCount('feedbacks');
+        }
+
+        // Search filter
         if (!empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
@@ -68,8 +76,11 @@ class FacultyRepository
             });
         }
 
-        return $query->with(['departments', 'feedbacks'])
-            ->paginate($perPage);
+        // Always order by ID to ensure consistent pagination
+        $query->orderBy('id');
+
+        return $query->paginate($perPage)
+            ->withQueryString();
     }
 
     /**
@@ -87,4 +98,68 @@ class FacultyRepository
     {
         return $faculty->load('feedbacks');
     }
+
+    public function getFacultySuggestions(string $query = null)
+    {
+        $queryBuilder = $this->model->query();
+
+        if (!empty($query)) {
+            $queryBuilder->where(function ($q) use ($query) {
+                $q->where('name->uz', 'like', "%{$query}%")
+                    ->orWhere('name->en', 'like', "%{$query}%")
+                    ->orWhere('name->ru', 'like', "%{$query}%");
+            });
+        }
+
+        return $queryBuilder
+            ->select('id', 'name')
+            ->limit(10)
+            ->get();
+    }
+
+    public function searchManagers(string $query = '', int $perPage = 10)
+    {
+        $queryBuilder = $this->model->query()
+            ->with(['manageable']); // Masalan, fakultet yoki bo‘lim (department) bilan birga olish uchun
+
+        if (!empty($query)) {
+            $queryBuilder->where(function ($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
+                    ->orWhere('email', 'like', "%{$query}%");
+            });
+        }
+
+        return $queryBuilder
+            ->select('id', 'name', 'email', 'manageable_type', 'manageable_id')
+            ->orderBy('name')
+            ->paginate($perPage);
+    }
+
+    public function getManagerSuggestions(string $query, int $limit = 5)
+    {
+        return $this->model
+            ->where(function ($q) use ($query) {
+                $q->where('name', 'like', "%{$query}%")
+                    ->orWhere('email', 'like', "%{$query}%");
+            })
+            ->select('id', 'name', 'email')
+            ->orderBy('name')
+            ->limit($limit)
+            ->get();
+    }
+
+    public function searchFaculties(string $query, int $perPage = 10)
+    {
+        return $this->model
+            ->where(function ($q) use ($query) {
+                $q->where('name->uz', 'like', "%{$query}%")
+                    ->orWhere('name->en', 'like', "%{$query}%")
+                    ->orWhere('name->ru', 'like', "%{$query}%");
+            })
+            ->orderBy('name->uz')
+            ->paginate($perPage);
+    }
+
+
+
 }

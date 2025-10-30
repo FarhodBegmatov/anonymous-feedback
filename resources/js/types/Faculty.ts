@@ -5,9 +5,10 @@ export interface Faculty {
         uz: string;
         ru: string;
     };
-    created_at?: string;
-    updated_at?: string;
+    departments_count?: number;
+    feedbacks_count?: number;
 }
+
 
 export interface FacultyFormData {
     name: {
@@ -17,18 +18,25 @@ export interface FacultyFormData {
     };
 }
 
+
 export interface FacultiesPageProps {
     faculties: {
         data: Faculty[];
         current_page: number;
         last_page: number;
-        per_page: number;
-        total: number;
-        links: any[];
+        links: Array<{
+            url: string | null;
+            label: string;
+            active: boolean;
+        }>;
     };
     flash?: {
         success?: string;
         error?: string;
+    };
+    filters?: {
+        search?: string;
+        type?: string;
     };
 }
 

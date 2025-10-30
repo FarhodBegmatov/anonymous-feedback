@@ -44,27 +44,19 @@ const SearchInput: React.FC<SearchInputProps> = ({
 
     // Debounced auto-search: harf kiritilgandan 300ms keyin onSearch chaqiriladi
     useEffect(() => {
-        // Clear old debounce
         if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
 
-        // Agar onSearch berilgan bo'lsa, debounce bilan chaqiramiz
         if (onSearch) {
-            // Agar qator bo'sh bo'lsa, agar kerak bo'lsa bo'sh qidiruv yuborish yoki yubormaslikni tanlang.
-            // Bu yerda bo'sh qator uchun onSearch chaqirilmaydi (agar kerak bo'lsa o'zgartiring).
-            if (!query.trim()) {
-                // agar siz bo'sh inputda ham backendga bo'sh qidiruv yuborishni xohlasangiz:
-                // onSearch('');
-                return;
-            }
-
+            // 👉 har doim onSearch chaqiramiz, hatto query bo‘sh bo‘lsa ham
             searchDebounceRef.current = setTimeout(() => {
                 try {
-                    onSearch(query.trim());
+                    onSearch(query.trim()); // agar query bo‘sh bo‘lsa — '', bu reset qiladi
                 } catch (e) {
                     console.error('onSearch error:', e);
                 }
-            }, 5); // 300ms debounce — kerak bo'lsa o'zgartiring
+            }, 300);
         }
+
         return () => {
             if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
         };

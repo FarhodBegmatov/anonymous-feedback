@@ -36,7 +36,7 @@ export default function Index({ departments, filters: initialFilters, flash }: D
         router.get(
             '/admin/departments',
             { ...initialFilters, page },
-            { preserveState: true, replace: true }
+            { preserveState: false, replace: true }
         );
     };
 
@@ -112,13 +112,13 @@ export default function Index({ departments, filters: initialFilters, flash }: D
 
                 {/* Pagination */}
                 <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
-                    <button
-                        onClick={() => goToPage(departments.current_page - 1)}
-                        disabled={departments.current_page === 1}
-                        className="rounded bg-gray-200 px-3 py-1 hover:bg-gray-300 disabled:opacity-50"
-                    >
-                        Previous
-                    </button>
+                    {/*<button*/}
+                    {/*    onClick={() => goToPage(departments.current_page - 1)}*/}
+                    {/*    disabled={departments.current_page === 1}*/}
+                    {/*    className="rounded bg-gray-200 px-3 py-1 hover:bg-gray-300 disabled:opacity-50"*/}
+                    {/*>*/}
+                    {/*    Previous*/}
+                    {/*</button>*/}
 
                     <div className="flex space-x-2">
                         {Array.from({ length: departments.last_page }, (_, i) => (
@@ -136,13 +136,13 @@ export default function Index({ departments, filters: initialFilters, flash }: D
                         ))}
                     </div>
 
-                    <button
-                        onClick={() => goToPage(departments.current_page + 1)}
-                        disabled={departments.current_page === departments.last_page}
-                        className="rounded bg-gray-200 px-3 py-1 hover:bg-gray-300 disabled:opacity-50"
-                    >
-                        Next
-                    </button>
+                    {/*<button*/}
+                    {/*    onClick={() => goToPage(departments.current_page + 1)}*/}
+                    {/*    disabled={departments.current_page === departments.last_page}*/}
+                    {/*    className="rounded bg-gray-200 px-3 py-1 hover:bg-gray-300 disabled:opacity-50"*/}
+                    {/*>*/}
+                    {/*    Next*/}
+                    {/*</button>*/}
                 </div>
             </div>
         </AdminLayout>

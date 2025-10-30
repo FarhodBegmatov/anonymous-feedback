@@ -84,4 +84,63 @@ class DepartmentRepository
     {
         return $this->model->with('faculty')->get();
     }
+
+    public function paginateByFaculty(int $facultyId, int $perPage)
+    {
+        return $this->model
+            ->where('faculty_id', $facultyId)
+            ->with(['faculty', 'feedbacks']) // kerakli relatsiyalarni yuklash
+            ->paginate($perPage);
+    }
+
+    public function searchDepartmentsInFaculty(int $facultyId, mixed $query, int $perPage)
+    {
+        return $this->model
+            ->where('faculty_id', $facultyId)
+            ->where(function ($q) use ($query) {
+                $q->where('name->uz', 'LIKE', "%{$query}%")
+                    ->orWhere('name->ru', 'LIKE', "%{$query}%")
+                    ->orWhere('name->en', 'LIKE', "%{$query}%");
+            })
+            ->with(['faculty', 'feedbacks'])
+            ->paginate($perPage);
+    }
+
+    public function getDepartmentSuggestions(string $query = null, int $limit = 10)
+    {
+        $queryBuilder = $this->model->query();
+
+        if (!empty($query)) {
+            $queryBuilder->where(function ($q) use ($query) {
+                $q->where('name->uz', 'like', "%{$query}%")
+                    ->orWhere('name->en', 'like', "%{$query}%")
+                    ->orWhere('name->ru', 'like', "%{$query}%");
+            });
+        }
+
+        return $queryBuilder
+            ->select('id', 'name', 'faculty_id')
+            ->limit($limit)
+            ->get();
+    }
+
+    public function searchDepartments(string $query = '', int $perPage = 10)
+    {
+        $queryBuilder = $this->model->query();
+
+        if (!empty($query)) {
+            $queryBuilder->where(function ($q) use ($query) {
+                $q->where('name->uz', 'like', "%{$query}%")
+                    ->orWhere('name->en', 'like', "%{$query}%")
+                    ->orWhere('name->ru', 'like', "%{$query}%");
+            });
+        }
+
+        return $queryBuilder
+            ->with('faculty:id,name') // fakultet nomini ham olish uchun
+            ->select('id', 'name', 'faculty_id')
+            ->orderBy('name->uz')
+            ->paginate($perPage);
+    }
+
 }

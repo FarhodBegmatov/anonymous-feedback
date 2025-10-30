@@ -3,15 +3,23 @@ import Pagination from '@/components/Pagination';
 import SearchInput from '@/components/SearchInput';
 import type { HomePageProps, Faculty, RatingColors } from '@/types/Home';
 import { Link } from '@inertiajs/react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 
 // 🔹 Debounce hook — input yozilganda ortiqcha renderni kamaytiradi
 function useDebounce<T>(value: T, delay = 400): T {
     const [debouncedValue, setDebouncedValue] = useState(value);
-    useMemo(() => {
+
+    useEffect(() => {
+        if (value === '' || value === null) {
+            // 🔹 Agar input bo‘sh bo‘lsa, kechiktirmasdan darhol yangilaymiz
+            setDebouncedValue(value);
+            return;
+        }
+
         const timer = setTimeout(() => setDebouncedValue(value), delay);
         return () => clearTimeout(timer);
     }, [value, delay]);
+
     return debouncedValue;
 }
 
@@ -28,10 +36,14 @@ export default function Home({
 
     // 🔹 Local qidiruv (client-side filtering)
     const facultiesToShow = useMemo<Faculty[]>(() => {
-        if (!debouncedQuery) return faculties.data as Faculty[];
+        const query = debouncedQuery.trim().toLowerCase();
 
-        const query = debouncedQuery.toLowerCase();
+        // 🔹 Agar input bo‘sh bo‘lsa — barcha fakultetlar chiqsin
+        if (query === '') {
+            return faculties.data as Faculty[];
+        }
 
+        // 🔹 Qidiruv
         return (faculties.data as Faculty[]).filter((faculty) => {
             const name =
                 faculty.name[locale as keyof typeof faculty.name] ||
@@ -177,7 +189,7 @@ export default function Home({
                         </div>
 
                         {/* Pagination — faqat search bo‘lmaganda */}
-                        {!debouncedQuery && <Pagination links={faculties.links} />}
+                        {debouncedQuery.trim() === '' && <Pagination links={faculties.links} />}
                     </>
                 ) : (
                     <div className="flex flex-col items-center justify-center py-12">
