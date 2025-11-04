@@ -2,20 +2,22 @@
 
 namespace App\Services;
 
-use App\Models\User;
-use App\Models\Faculty;
 use App\Models\Department;
+use App\Models\Faculty;
+use App\Models\User;
 use App\Repositories\ManagerRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Hash;
+use InvalidArgumentException as InvalidArgumentExceptionAlias;
 
-class ManagerService
+readonly class ManagerService
 {
     public function __construct(
         private ManagerRepository $managerRepository
     ) {}
 
-    public function getAllManagers()
+    public function getAllManagers(): Collection
     {
         return $this->managerRepository->all();
     }
@@ -71,9 +73,9 @@ class ManagerService
     private function resolveManageableType(string $type): string
     {
         return match ($type) {
-            'faculty', \App\Models\Faculty::class => \App\Models\Faculty::class,
-            'department', \App\Models\Department::class => \App\Models\Department::class,
-            default => throw new \InvalidArgumentException("Invalid manageable type: {$type}"),
+            'faculty', Faculty::class => Faculty::class,
+            'department', Department::class => Department::class,
+            default => throw new InvalidArgumentExceptionAlias("Invalid manageable type: $type"),
         };
     }
 }

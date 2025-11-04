@@ -54,11 +54,11 @@ export default function Pagination({ links, className = '' }: PaginationProps) {
                         <li key={index} className="inline-flex">
                             {link.url ? (
                                 <Link
-                                    href={link.url!} // URL har doim bo'lishi kerak
+                                    href={link.url!} // URL should always exist
                                     className={`${baseStyles} ${link.active ? activeStyles : ''} ${borderStyles}`}
                                     preserveScroll
-                                    replace={false} // sahifani almashtirmaslik
-                                    only={['faculties']}
+                                    replace={false} // don't replace the page
+                                    only={['faculties', 'departments', 'managers']}
                                 >
                                     {cleanLabel}
                                 </Link>

@@ -6,8 +6,13 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useEffect } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Pagination from "@/components/Pagination";
 
-export default function Index({ departments, filters: initialFilters, flash }: DepartmentsPageProps) {
+export default function Index({
+  departments,
+  filters = {},
+  flash
+}: DepartmentsPageProps) {
     const { deleteResource, isDeleting } = useDelete({
         resourceName: 'department',
     });
@@ -24,19 +29,20 @@ export default function Index({ departments, filters: initialFilters, flash }: D
 
     const handleSearch = (query: string) => {
         const trimmed = query.trim();
+        if (filters?.search === trimmed) return;
 
         router.get(
             '/admin/departments',
-            trimmed ? { search: trimmed } : {},
-            { preserveState: true, replace: true }
-        );
-    };
-
-    const goToPage = (page: number) => {
-        router.get(
-            '/admin/departments',
-            { ...initialFilters, page },
-            { preserveState: false, replace: true }
+            {
+                search: trimmed,
+                page: departments.current_page,
+            },
+            {
+                preserveState: true,
+                replace: true,
+                preserveScroll: true,
+                only: ['departments'],
+            },
         );
     };
 
@@ -77,7 +83,7 @@ export default function Index({ departments, filters: initialFilters, flash }: D
                         {departmentList.length > 0 ? (
                             departmentList.map((department: Department, index: number) => (
                                 <tr key={department.id} className="hover:bg-gray-50">
-                                    <td className="border px-4 py-2">{index + 1 + (departments.current_page - 1) * departments.per_page}</td>
+                                    <td className="border px-4 py-2">{index + 1}</td>
                                     <td className="border px-4 py-2">{department.name.en}</td>
                                     <td className="border px-4 py-2">{department.name.uz}</td>
                                     <td className="border px-4 py-2">{department.name.ru}</td>
@@ -110,40 +116,14 @@ export default function Index({ departments, filters: initialFilters, flash }: D
                     </table>
                 </div>
 
-                {/* Pagination */}
-                <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
-                    {/*<button*/}
-                    {/*    onClick={() => goToPage(departments.current_page - 1)}*/}
-                    {/*    disabled={departments.current_page === 1}*/}
-                    {/*    className="rounded bg-gray-200 px-3 py-1 hover:bg-gray-300 disabled:opacity-50"*/}
-                    {/*>*/}
-                    {/*    Previous*/}
-                    {/*</button>*/}
+                {departments.links.length >= 10 && (
+                    <Pagination
+                        links={departments.links}
+                        filters={filters}
+                        className="mt-6"
+                    />
+                )}
 
-                    <div className="flex space-x-2">
-                        {Array.from({ length: departments.last_page }, (_, i) => (
-                            <button
-                                key={i + 1}
-                                onClick={() => goToPage(i + 1)}
-                                className={`rounded px-3 py-1 ${
-                                    departments.current_page === i + 1
-                                        ? 'bg-blue-500 text-white'
-                                        : 'bg-gray-200 hover:bg-gray-300'
-                                }`}
-                            >
-                                {i + 1}
-                            </button>
-                        ))}
-                    </div>
-
-                    {/*<button*/}
-                    {/*    onClick={() => goToPage(departments.current_page + 1)}*/}
-                    {/*    disabled={departments.current_page === departments.last_page}*/}
-                    {/*    className="rounded bg-gray-200 px-3 py-1 hover:bg-gray-300 disabled:opacity-50"*/}
-                    {/*>*/}
-                    {/*    Next*/}
-                    {/*</button>*/}
-                </div>
             </div>
         </AdminLayout>
     );

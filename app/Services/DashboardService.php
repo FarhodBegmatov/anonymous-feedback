@@ -2,20 +2,26 @@
 
 namespace App\Services;
 
-use App\Models\User;
+use App\Models\Department;
+use App\Models\Faculty;
 use App\Repositories\FacultyRepository;
 use App\Repositories\DepartmentRepository;
+use Illuminate\Contracts\Auth\Authenticatable;
 
-class DashboardService
+readonly class DashboardService
 {
     public function __construct(
         private FeedbackRatingService $ratingService,
-        private FacultyRepository $facultyRepository,
-        private DepartmentRepository $departmentRepository
+        private FacultyRepository     $facultyRepository,
+        private DepartmentRepository  $departmentRepository
     ) {}
-    public function getDashboardData(User $user): array
+
+    public function getDashboardData(Authenticatable $user): array
     {
-        $manageable = $user->manageable;
+        /** @var Faculty|Department|null $manageable */
+        if (!empty($user->manageable)) {
+            $manageable = $user->manageable;
+        }
 
         $data = [
             'type' => null,
@@ -24,24 +30,22 @@ class DashboardService
             'message' => null,
         ];
 
-        // If the manager is not assigned to any faculty or department
         if (!$manageable) {
             $data['message'] = 'You are not yet assigned to any faculty or department.';
             return $data;
         }
 
-        // Department manager
-        if ($user->isDepartmentManager()) {
+        if ($manageable instanceof Department) {
             return $this->getDepartmentDashboardData($manageable->id);
         }
 
-        // Faculty manager
-        if ($user->isFacultyManager()) {
+        if ($manageable instanceof Faculty) {
             return $this->getFacultyDashboardData($manageable->id);
         }
 
         return $data;
     }
+
 
     private function getDepartmentDashboardData(int $departmentId): array
     {
@@ -56,10 +60,10 @@ class DashboardService
             'type' => 'department',
             'department' => [
                 'id' => $department->id,
-                'name' => (array) $department->name,
+                'name' => $department->name,
                 'faculty' => [
                     'id' => $department->faculty->id,
-                    'name' => (array) $department->faculty->name,
+                    'name' => $department->faculty->name,
                 ],
             ],
             'feedbacks' => $feedbacks,
@@ -91,7 +95,7 @@ class DashboardService
             'type' => 'faculty',
             'faculty' => [
                 'id' => $faculty->id,
-                'name' => (array) $faculty->name,
+                'name' => $faculty->name,
             ],
             'departments' => $departments,
             'feedbacks' => [],

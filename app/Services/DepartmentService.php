@@ -7,7 +7,7 @@ use App\Repositories\DepartmentRepository;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
-class DepartmentService
+readonly class DepartmentService
 {
     public function __construct(private DepartmentRepository $departmentRepository) {}
 
@@ -20,7 +20,7 @@ class DepartmentService
     }
 
     /**
-     * Get paginated list of departments with optional filters
+     * Get the paginated list of departments with optional filters
      */
     public function getPaginatedDepartments(int $perPage = 10, array $filters = []): LengthAwarePaginator
     {

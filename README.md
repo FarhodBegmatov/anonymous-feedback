@@ -1,41 +1,40 @@
-# Feedback Management System
+# Anonymous Feedback System
 
-A modern web application built with Laravel, React, TypeScript, and Inertia.js for managing feedback and surveys.
+A secure web application built with Laravel, React, TypeScript, and Inertia.js for submitting and managing anonymous feedback about faculties and departments.
 
 ## 🚀 Features
 
-- **User Authentication** - Secure login and registration system
-- **Role-based Access Control** - Different dashboards for admins, managers, and regular users
-- **Feedback Management** - Create, view, and manage feedback entries
-- **Department Management** - Organize users and feedback by departments
+- **Anonymous Feedback** - Submit feedback without revealing identity
+- **Faculty & Department Search** - Find and rate faculties and departments
+- **Multi-language Support** - Built-in support for multiple languages
 - **Responsive Design** - Works on desktop and mobile devices
-- **Real-time Updates** - Using Laravel's broadcasting features
+- **Secure** - Built with security best practices in mind
 
 ## 🛠 Tech Stack
 
-- **Backend**: Laravel 10+
-- **Frontend**: React 18 with TypeScript
-- **UI Framework**: Shadcn UI
-- **State Management**: React Context API
-- **Authentication**: Laravel Fortify
-- **API**: Laravel Sanctum
-- **Database**: MySQL/PostgreSQL
+- **Backend**: Laravel
+- **Frontend**: React with TypeScript
+- **UI Framework**: Headless UI with custom components
+- **State Management**: React Hooks
+- **Authentication**: Laravel Breeze
+- **Database**: MySQL
 - **Build Tool**: Vite
 
 ## 📋 Prerequisites
 
-- PHP 8.2+
+- PHP 8.1+
 - Composer
-- Node.js 18+
+- Node.js 16+
 - npm or Yarn
-- MySQL/PostgreSQL
+- MySQL 5.7+ or MariaDB
+- XAMPP/WAMP (recommended for Windows)
 
 ## 🚀 Installation
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/feedback-system.git
-   cd feedback-system
+   git clone https://github.com/yourusername/anonymous-feedback.git
+   cd anonymous-feedback
    ```
 
 2. Install PHP dependencies:
@@ -62,10 +61,10 @@ A modern web application built with Laravel, React, TypeScript, and Inertia.js f
 
 6. Configure your database in `.env`:
    ```
-   DB_CONNECTION=sqlite
+   DB_CONNECTION=mysql
    DB_HOST=127.0.0.1
    DB_PORT=3306
-   DB_DATABASE=database_name
+   DB_DATABASE=anonymous_feedback
    DB_USERNAME=root
    DB_PASSWORD=
    ```
@@ -87,12 +86,12 @@ A modern web application built with Laravel, React, TypeScript, and Inertia.js f
    php artisan serve
    ```
 
-## 🔒 Default Admin User
+## 🔒 Admin User
 
-After running the seeders, you can log in with:
+After running the migrations and seeders, you can log in with the default admin account:
 
-- **name**: admin
-- **Password**: password123
+- **Name**: admin
+- **Password**: admin123
 
 ## 🧪 Testing
 
@@ -104,11 +103,11 @@ php artisan test
 
 ## 🤝 Contributing
 
-1. Fork the project
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/your-feature`)
+3. Commit your changes (`git commit -m 'Add your feature'`)
+4. Push to the branch (`git push origin feature/your-feature`)
+5. Open a Pull Request with a clear description of changes
 
 ## 📄 License
 
@@ -119,4 +118,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Laravel](https://laravel.com/)
 - [React](https://reactjs.org/)
 - [Inertia.js](https://inertiajs.com/)
-- [Shadcn UI](https://ui.shadcn.com/)
+- [Headless UI](https://headlessui.com/)

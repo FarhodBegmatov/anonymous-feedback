@@ -8,6 +8,7 @@ use App\Http\Requests\Department\UpdateDepartmentRequest;
 use App\Models\Department;
 use App\Services\DepartmentService;
 use App\Services\FacultyService;
+use Exception as ExceptionAlias;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -17,8 +18,8 @@ use Illuminate\Http\JsonResponse;
 class DepartmentController extends Controller
 {
     public function __construct(
-        private DepartmentService $departmentService,
-        private FacultyService $facultyService
+        private readonly DepartmentService $departmentService,
+        private readonly FacultyService $facultyService
     ) {}
 
     /**
@@ -48,7 +49,7 @@ class DepartmentController extends Controller
             $this->departmentService->createDepartment($request->validated());
             return redirect()->route('admin.departments.index')
                 ->with('success', 'Department created successfully');
-        } catch (\Exception $e) {
+        } catch (ExceptionAlias $e) {
             return redirect()->back()
                 ->with('error', 'Error creating department: ' . $e->getMessage())
                 ->withInput();
@@ -69,7 +70,7 @@ class DepartmentController extends Controller
             $this->departmentService->updateDepartment($department, $request->validated());
             return redirect()->route('admin.departments.index')
                 ->with('success', 'Department updated successfully');
-        } catch (\Exception $e) {
+        } catch (ExceptionAlias $e) {
             return redirect()->back()
                 ->with('error', 'Error updating department: ' . $e->getMessage());
         }
@@ -86,7 +87,7 @@ class DepartmentController extends Controller
 
             return redirect()->route('admin.departments.index')
                 ->with('success', 'Department deleted successfully');
-        } catch (\Exception $e) {
+        } catch (ExceptionAlias $e) {
             if (request()->expectsJson()) {
                 return response()->json(['success' => false, 'message' => $e->getMessage()], 400);
             }

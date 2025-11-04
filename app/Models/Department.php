@@ -17,6 +17,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon $updated_at
  * @property-read Faculty $faculty
  * @property-read Collection<int, Feedback> $feedbacks
+ * @method create(array $data)
+ * @method where(string $string, int $facultyId)
  */
 class Department extends Model
 {

@@ -21,17 +21,13 @@ export interface PaginationLink {
     active: boolean;
 }
 
-export interface PaginationMeta {
+export interface PaginatedManagers {
+    data: Manager[];
+    links: PaginationLink[];
     current_page: number;
     last_page: number;
     per_page: number;
     total: number;
-}
-
-export interface PaginatedManagers {
-    data: Manager[];
-    links: PaginationLink[];
-    meta: PaginationMeta;
 }
 
 export interface ManagersPageProps {

@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\ManagerService;
 use App\Services\FacultyService;
 use App\Services\DepartmentService;
+use Exception as ExceptionAlias;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -18,9 +19,9 @@ use Illuminate\Http\JsonResponse;
 class ManagerController extends Controller
 {
     public function __construct(
-        private ManagerService $managerService,
-        private FacultyService $facultyService,
-        private DepartmentService $departmentService
+        private readonly ManagerService $managerService,
+        private readonly FacultyService $facultyService,
+        private readonly DepartmentService $departmentService
     ) {}
 
     public function index(Request $request): Response
@@ -49,7 +50,7 @@ class ManagerController extends Controller
 
             return redirect()->route('admin.managers.index')
                 ->with('success', 'Manager created successfully');
-        } catch (\Exception $e) {
+        } catch (ExceptionAlias $e) {
             return redirect()->back()
                 ->with('error', 'Error creating manager: ' . $e->getMessage())
                 ->withInput();
@@ -78,7 +79,7 @@ class ManagerController extends Controller
 
             return redirect()->route('admin.managers.index')
                 ->with('success', 'Manager updated successfully');
-        } catch (\Exception $e) {
+        } catch (ExceptionAlias $e) {
             return redirect()->back()
                 ->with('error', 'Error updating manager: ' . $e->getMessage());
         }
@@ -100,7 +101,7 @@ class ManagerController extends Controller
             // Redirect for regular requests
             return redirect()->route('admin.managers.index')
                 ->with('success', 'Manager deleted successfully');
-        } catch (\Exception $e) {
+        } catch (ExceptionAlias $e) {
             // JSON error response for AJAX requests
             if (request()->expectsJson()) {
                 return response()->json([

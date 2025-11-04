@@ -5,8 +5,9 @@ namespace App\Repositories;
 use App\Models\Faculty;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator as LengthAwarePaginatorAlias;
 
-class FacultyRepository
+readonly class FacultyRepository
 {
     public function __construct(private Faculty $model) {}
 
@@ -99,7 +100,7 @@ class FacultyRepository
         return $faculty->load('feedbacks');
     }
 
-    public function getFacultySuggestions(string $query = null)
+    public function getFacultySuggestions(string $query = null): Collection
     {
         $queryBuilder = $this->model->query();
 
@@ -117,21 +118,16 @@ class FacultyRepository
             ->get();
     }
 
-    public function searchManagers(string $query = '', int $perPage = 10)
+    public function searchManagers(string $query = '', int $perPage = 10): LengthAwarePaginatorAlias
     {
-        $queryBuilder = $this->model->query()
-            ->with(['manageable']); // Masalan, fakultet yoki bo‘lim (department) bilan birga olish uchun
-
-        if (!empty($query)) {
-            $queryBuilder->where(function ($q) use ($query) {
-                $q->where('name', 'like', "%{$query}%")
-                    ->orWhere('email', 'like', "%{$query}%");
-            });
-        }
-
-        return $queryBuilder
-            ->select('id', 'name', 'email', 'manageable_type', 'manageable_id')
-            ->orderBy('name')
+        return $this->model
+            ->where(function ($q) use ($query) {
+                $q->where('name->uz', 'like', "%{$query}%")
+                    ->orWhere('name->en', 'like', "%$query}%")
+                    ->orWhere('name->ru', 'like', "%{$query}%");
+            })
+            ->select('id', 'name')
+            ->orderBy('name->uz')
             ->paginate($perPage);
     }
 

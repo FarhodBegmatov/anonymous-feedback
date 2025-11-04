@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Closure as ClosureAlias;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -16,6 +17,9 @@ use Illuminate\Support\Carbon;
  * @property Carbon $updated_at
  * @property-read Collection<int, Department> $departments
  * @property-read Collection<int, Feedback> $feedbacks
+ * @method where(ClosureAlias $param)
+ * @method create(array $data)
+ * @method find(int $id)
  */
 class Faculty extends Model
 {

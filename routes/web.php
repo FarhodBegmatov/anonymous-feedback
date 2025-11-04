@@ -66,7 +66,7 @@ Route::middleware(['web', 'auth', 'can:isAdmin'])
     ->prefix('admin')
     ->name('admin.')
     ->group(function () {
-        Route::resource('faculties', FacultyController::class);
-        Route::resource('departments', DepartmentController::class);
-        Route::resource('managers', ManagerController::class);
+        Route::resource('faculties', FacultyController::class)->except('show');
+        Route::resource('departments', DepartmentController::class)->except('show');
+        Route::resource('managers', ManagerController::class)->except('show');
     });

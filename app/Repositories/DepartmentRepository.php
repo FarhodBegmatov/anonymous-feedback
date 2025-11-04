@@ -5,8 +5,9 @@ namespace App\Repositories;
 use App\Models\Department;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator as LengthAwarePaginatorAlias;
 
-class DepartmentRepository
+readonly class DepartmentRepository
 {
     public function __construct(private Department $model) {}
 
@@ -59,7 +60,7 @@ class DepartmentRepository
     {
         $query = $this->model->query()->with('faculty');
 
-        // Qidiruv filteri: name
+        // Search filter: name
         if (!empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
@@ -68,13 +69,15 @@ class DepartmentRepository
                     ->orWhere('name->ru', 'LIKE', "%{$search}%");
             });
         }
+        $query->orderBy('id');
 
-        // Fakultet bo‘yicha filter
+        // Filter by faculty
         if (!empty($filters['faculty_id'])) {
             $query->where('faculty_id', $filters['faculty_id']);
         }
 
-        return $query->paginate($perPage);
+        return $query->paginate($perPage)
+            ->withQueryString();
     }
 
     /**
@@ -89,7 +92,7 @@ class DepartmentRepository
     {
         return $this->model
             ->where('faculty_id', $facultyId)
-            ->with(['faculty', 'feedbacks']) // kerakli relatsiyalarni yuklash
+            ->with(['faculty', 'feedbacks']) // Load necessary relationships
             ->paginate($perPage);
     }
 
@@ -106,7 +109,7 @@ class DepartmentRepository
             ->paginate($perPage);
     }
 
-    public function getDepartmentSuggestions(string $query = null, int $limit = 10)
+    public function getDepartmentSuggestions(string $query = null, int $limit = 10): Collection
     {
         $queryBuilder = $this->model->query();
 
@@ -124,7 +127,7 @@ class DepartmentRepository
             ->get();
     }
 
-    public function searchDepartments(string $query = '', int $perPage = 10)
+    public function searchDepartments(string $query = '', int $perPage = 10): LengthAwarePaginatorAlias
     {
         $queryBuilder = $this->model->query();
 
@@ -137,7 +140,7 @@ class DepartmentRepository
         }
 
         return $queryBuilder
-            ->with('faculty:id,name') // fakultet nomini ham olish uchun
+            ->with('faculty:id,name') // Also get the faculty name
             ->select('id', 'name', 'faculty_id')
             ->orderBy('name->uz')
             ->paginate($perPage);

@@ -6,42 +6,46 @@ import { Head, Link, router } from '@inertiajs/react';
 import { useEffect } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Pagination from "@/components/Pagination";
 
-export default function Index({ managers, flash }: ManagersPageProps) {
+export default function Index({
+  managers,
+  flash,
+  filters = {},
+}: ManagersPageProps) {
     const { deleteResource, isDeleting } = useDelete({
         resourceName: 'manager',
     });
 
-    // 🔹 Flash xabarlarni chiqarish
+    // 🔹 Display flash messages
     useEffect(() => {
         if (flash?.success) toast.success(flash.success);
         if (flash?.error) toast.error(flash.error);
     }, [flash]);
 
-    // 🔹 Ma'lumotni o'chirish funksiyasi
+    // 🔹 Function to delete data
     const handleDelete = async (id: number) => {
         await deleteResource(`/admin/managers/${id}`);
     };
 
-    // 🔹 Qidiruv funksiyasi — asosiy joy
+    // 🔹 Search function — main section
     const handleSearch = (query: string) => {
         const trimmed = query.trim();
+        if (filters?.search === trimmed) return;
 
-        if (trimmed === '') {
-            // Agar input bo‘sh bo‘lsa — search parametrini olib tashlaymiz
-            router.get(
-                '/admin/managers',
-                {},
-                { preserveState: true, replace: true },
-            );
-        } else {
-            // Agar inputda matn bo‘lsa — qidiruvni yuboramiz
-            router.get(
-                '/admin/managers',
-                { search: trimmed },
-                { preserveState: true, replace: true },
-            );
-        }
+        router.get(
+            '/admin/managers',
+            {
+                search: trimmed,
+                page: managers.current_page,
+            },
+            {
+                preserveState: true,
+                replace: true,
+                preserveScroll: true,
+                only: ['managers'],
+            },
+        );
     };
 
     return (
@@ -146,6 +150,14 @@ export default function Index({ managers, flash }: ManagersPageProps) {
                         </tbody>
                     </table>
                 </div>
+
+                {managers.links.length >= 10 && (
+                    <Pagination
+                        links={managers.links}
+                        filters={filters}
+                        className="mt-6"
+                    />
+                )}
             </div>
         </AdminLayout>
     );

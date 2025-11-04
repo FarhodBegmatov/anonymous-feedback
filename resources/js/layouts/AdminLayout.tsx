@@ -2,12 +2,12 @@ import { PageProps as InertiaPageProps } from '@inertiajs/core';
 import { Link, usePage } from '@inertiajs/react';
 import React from 'react';
 
-// ✅ Auth foydalanuvchi tipi
+// ✅ User type for authentication
 interface AuthUser {
     id: number;
     name: string;
     email: string;
-    role?: string; // 👈 qo‘shildi
+    role?: string;
 }
 
 interface PageProps extends InertiaPageProps {
@@ -26,13 +26,13 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
     const { auth } = page.props;
     const role = auth?.user?.role;
 
-    // 👇 Panel nomi rolga qarab belgilanadi
+    // 👇 Role determined panel name
     const panelName =
         role === 'admin'
             ? 'Admin Panel'
             : 'Manager Panel';
 
-    // ✅ HTML sahifa title-ni yangilash
+    // ✅ Update HTML page title
     if (typeof document !== 'undefined') {
         document.title = `${title} | ${panelName}`;
     }
@@ -54,14 +54,15 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
                 <div className="flex items-center space-x-4">
                     <span className="text-gray-300">{auth?.user?.name}</span>
 
-                    <Link
-                        href="/"
-                        method="get"
-                        as="button"
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault();
+                            window.open('/', '_blank');
+                        }}
                         className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-700"
                     >
-                        Saytni ko‘rish
-                    </Link>
+                        Saytni ko'rish
+                    </button>
 
                     <Link
                         href="/logout"
@@ -69,7 +70,7 @@ export default function AdminLayout({ children, title }: AdminLayoutProps) {
                         as="button"
                         className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"
                     >
-                        Logout
+                        Chiqish
                     </Link>
                 </div>
             </header>

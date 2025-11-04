@@ -17,17 +17,18 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
 
         $this->call([
-            AdminSeeder::class,
-            FacultySeeder::class,
-            DepartmentSeeder::class,
+//            AdminSeeder::class,
+//            FacultySeeder::class,
+//            DepartmentSeeder::class,
         ]);
 
         User::firstOrCreate(
-            ['email' => 'manager@example.com'],
+            ['email' => 'admin@example.com'],
             [
-                'name' => 'manager',
-                'password' => Hash::make('manager123'),
-                'email_verified_at' => now(),
+                'name' => 'admin',
+                'email' => 'admin@example.com',
+                'password' => Hash::make('admin123'),
+                'role' => 'admin',
             ]
         );
     }

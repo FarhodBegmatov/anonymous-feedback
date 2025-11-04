@@ -145,7 +145,7 @@ export default function Index({
                     </table>
                 </div>
 
-                {faculties.links.length > 1 && (
+                {faculties.links.length >= 10 && (
                     <Pagination
                         links={faculties.links}
                         filters={filters}
