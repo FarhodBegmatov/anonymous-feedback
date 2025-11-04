@@ -1,19 +1,19 @@
 import PageHeader from '@/components/PageHeader';
-import { useDelete } from '@/hooks/useDelete';
+import {useDelete} from '@/hooks/useDelete';
 import AdminLayout from '@/layouts/AdminLayout';
-import type { Manager, ManagersPageProps } from '@/types/Manager';
-import { Head, Link, router } from '@inertiajs/react';
-import { useEffect } from 'react';
-import { toast, ToastContainer } from 'react-toastify';
+import type {Manager, ManagersPageProps} from '@/types/Manager';
+import {Head, Link, router} from '@inertiajs/react';
+import {useEffect} from 'react';
+import {toast, ToastContainer} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Pagination from "@/components/Pagination";
 
 export default function Index({
-  managers,
-  flash,
-  filters = {},
-}: ManagersPageProps) {
-    const { deleteResource, isDeleting } = useDelete({
+                                  managers,
+                                  flash,
+                                  filters = {},
+                              }: ManagersPageProps) {
+    const {deleteResource, isDeleting} = useDelete({
         resourceName: 'manager',
     });
 
@@ -50,8 +50,8 @@ export default function Index({
 
     return (
         <AdminLayout title="Managers">
-            <Head title="Managers" />
-            <ToastContainer position="top-right" autoClose={3000} />
+            <Head title="Managers"/>
+            <ToastContainer position="top-right" autoClose={3000}/>
 
             <div className="mx-auto mt-10 w-full rounded-2xl bg-white p-6 shadow-lg">
                 <PageHeader
@@ -114,9 +114,15 @@ export default function Index({
                                             : '-'}
                                     </td>
                                     <td className="border px-4 py-2">
-                                        {m.manageable
-                                            ? 'Faculty/Department'
-                                            : '-'}
+                                        {m.manageable ? (
+                                            <div>
+                                                <span className="font-medium">
+                                                    {m.manageable_type === 'App\\Models\\Faculty' ? 'Fakultet' : 'Kafedra'}
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            '-'
+                                        )}
                                     </td>
                                     <td className="space-x-2 border px-4 py-2 text-center">
                                         <Link

@@ -72,8 +72,8 @@ export default function Index({
                         <thead className="bg-gray-100">
                         <tr>
                             <th className="border px-4 py-2">#</th>
-                            <th className="border px-4 py-2">Name (EN)</th>
                             <th className="border px-4 py-2">Name (UZ)</th>
+                            <th className="border px-4 py-2">Name (EN)</th>
                             <th className="border px-4 py-2">Name (RU)</th>
                             <th className="border px-4 py-2">Faculty</th>
                             <th className="border px-4 py-2 text-center">Actions</th>
@@ -84,10 +84,10 @@ export default function Index({
                             departmentList.map((department: Department, index: number) => (
                                 <tr key={department.id} className="hover:bg-gray-50">
                                     <td className="border px-4 py-2">{index + 1}</td>
-                                    <td className="border px-4 py-2">{department.name.en}</td>
                                     <td className="border px-4 py-2">{department.name.uz}</td>
+                                    <td className="border px-4 py-2">{department.name.en}</td>
                                     <td className="border px-4 py-2">{department.name.ru}</td>
-                                    <td className="border px-4 py-2">{department.faculty?.name.en || '-'}</td>
+                                    <td className="border px-4 py-2">{department.faculty?.name.uz || '-'}</td>
                                     <td className="space-x-2 border px-4 py-2 text-center">
                                         <Link
                                             href={`/admin/departments/${department.id}/edit`}

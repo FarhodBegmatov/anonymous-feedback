@@ -3,8 +3,8 @@ export interface Manager {
     name: string;
     email: string;
     role: string;
-    manageable_type: string;
-    manageable_id: number;
+    manageable_type?: string;
+    manageable_id?: number;
     manageable?: {
         id: number;
         name: {

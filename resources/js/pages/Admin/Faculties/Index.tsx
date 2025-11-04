@@ -81,8 +81,8 @@ export default function Index({
                         <thead className="bg-gray-100">
                             <tr>
                                 <th className="border px-4 py-2">#</th>
-                                <th className="border px-4 py-2">Name (EN)</th>
                                 <th className="border px-4 py-2">Name (UZ)</th>
+                                <th className="border px-4 py-2">Name (EN)</th>
                                 <th className="border px-4 py-2">Name (RU)</th>
                                 <th className="border px-4 py-2 text-center">
                                     Actions
@@ -101,10 +101,10 @@ export default function Index({
                                                 {index + 1}
                                             </td>
                                             <td className="border px-4 py-2">
-                                                {faculty.name.en}
+                                                {faculty.name.uz}
                                             </td>
                                             <td className="border px-4 py-2">
-                                                {faculty.name.uz}
+                                                {faculty.name.en}
                                             </td>
                                             <td className="border px-4 py-2">
                                                 {faculty.name.ru}
